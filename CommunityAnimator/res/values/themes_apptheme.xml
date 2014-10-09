@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="AppTheme" parent="@style/_AppTheme" />
+
+    <style name="_AppTheme" parent="android:Theme.Light">
+        <item name="android:buttonStyle">@style/ButtonAppTheme</item>
+        <item name="android:imageButtonStyle">@style/ImageButtonAppTheme</item>
+        <item name="android:checkboxStyle">@style/CheckBoxAppTheme</item>
+    </style>
+
+    <style name="AppThemeGreen" parent="@style/_AppThemeGreen" />
+
+    <style name="_AppThemeGreen" parent="android:Theme.Light">
+        <item name="android:buttonStyle">@style/ButtonAppThemeGreen</item>
+        <item name="android:imageButtonStyle">@style/ImageButtonAppThemeGreen</item>
+    </style>
+
+    <style name="AppThemeLightBlue" parent="@style/_AppThemeLightBlue" />
+
+    <style name="_AppThemeLightBlue" parent="android:Theme.Light">
+        <item name="android:buttonStyle">@style/ButtonAppThemeLightBlue</item>
+        <item name="android:imageButtonStyle">@style/ImageButtonAppThemeLightBlue</item>
+    </style>
+
+    <style name="AppThemeDarkBlue" parent="@style/_AppThemeDarkBlue" />
+
+    <style name="_AppThemeDarkBlue" parent="android:Theme.Light">
+        <item name="android:buttonStyle">@style/ButtonAppThemeDarkBlue</item>
+        <item name="android:imageButtonStyle">@style/ImageButtonAppThemeDarkBlue</item>
+    </style>
+
+    <style name="AppThemeRadioButton" parent="@style/_AppThemeRadioButton" />
+
+    <style name="_AppThemeRadioButton" parent="android:Theme.Light">
+        <item name="android:radioButtonStyle">@style/RadioButtonAppThemeRadioButton</item>
+    </style>
+
+    <style name="AppThemeWhite" parent="@style/_AppThemeWhite" />
+
+    <style name="_AppThemeWhite" parent="android:Theme.Light">
+        <item name="android:buttonStyle">@style/ButtonAppThemeWhite</item>
+        <item name="android:imageButtonStyle">@style/ImageButtonAppThemeWhite</item>
+    </style>
+
+</resources>

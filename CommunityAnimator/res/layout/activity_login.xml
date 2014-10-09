@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/activity_lateral_margin"
+    android:paddingRight="@dimen/activity_lateral_margin" >
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="wrap_content"
+        android:layout_height="130dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="10dp"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/logo" />
+
+    <RelativeLayout
+        android:id="@+id/loginContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/txtusername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:text="@string/usernameHint"
+            android:textColor="@android:color/darker_gray"
+            android:textAppearance="?android:attr/textAppearance" />
+
+        <EditText
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtusername"
+            android:background="@drawable/edittext_round_corners"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/txtpassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/username"
+            android:padding="5dp"
+            android:text="@string/passwordHint"
+            android:textColor="@android:color/darker_gray"
+            android:textAppearance="?android:attr/textAppearance" />
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txtpassword"
+            android:background="@drawable/edittext_round_corners"
+            android:imeActionId="@+id/login"
+            android:imeActionLabel="@string/action_sign_in_short"
+            android:imeOptions="actionUnspecified"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:singleLine="true" />
+
+        <LinearLayout
+            android:id="@+id/rememberContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/password"
+            android:layout_marginTop="5dp" >
+
+            <CheckBox
+                android:id="@+id/remembercheck"
+                style="@style/CheckBoxAppTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/txtremember"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/remember"
+                android:textColor="@android:color/darker_gray"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/forgot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/rememberContent"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/password"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:text="@string/forgot"
+            android:textColor="@color/blue"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_login"
+        style="@style/ButtonAppTheme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:text="@string/action_sign_in_short"
+        android:textAppearance="?android:attr/textAppearance" />
+
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/darker_gray" />
+
+    <TextView
+        android:id="@+id/txtsocial"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/social"
+        android:textColor="@android:color/darker_gray"
+        android:textAppearance="?android:attr/textAppearance" />
+
+    <RelativeLayout
+        android:id="@+id/facebookContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:id="@+id/facebookIco"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/facebook"
+            android:src="@drawable/facebook_ico" />
+
+        <Button
+            android:id="@+id/btn_facebook"
+            style="@style/ButtonAppThemeDarkBlue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/facebookIco"
+            android:layout_toEndOf="@id/facebookIco"
+            android:text="@string/facebook"
+            android:textAppearance="?android:attr/textAppearance" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/twitterContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <ImageView
+            android:id="@+id/twitterIco"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/twitter"
+            android:src="@drawable/twitter_ico" />
+
+        <Button
+            android:id="@+id/btn_twitter"
+            style="@style/ButtonAppThemeLightBlue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/twitterIco"
+            android:layout_toEndOf="@id/twitterIco"
+            android:text="@string/twitter"
+            android:textAppearance="?android:attr/textAppearance" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/signupContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp" >
+
+        <TextView
+            android:id="@+id/signUpquestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/signUpQuestion"
+            android:textColor="@android:color/darker_gray"
+            android:textAppearance="?android:attr/textAppearance" />
+
+        <Button
+            android:id="@+id/btn_signup"
+            style="@style/ButtonAppThemeGreen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/signUpquestion"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/signUp"
+           android:textAppearance="?android:attr/textAppearance" />
+    </RelativeLayout>
+
+</LinearLayout>

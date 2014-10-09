@@ -1,0 +1,178 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white" >
+
+    <LinearLayout
+        android:id="@+id/headerView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scrollbars="vertical" >
+
+        <ImageView
+            android:id="@+id/appLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_launcher" />
+
+        <Button
+            android:id="@+id/menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@drawable/selector_menu_button"
+            android:onClick="toggleMenu" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/menuView"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/headerView"
+        android:visibility="visible" >
+
+        <View
+            android:id="@+id/header"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/orange" />
+
+        <View
+            android:layout_width="2dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/profileItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/header"
+            android:layout_margin="5dp"
+            android:background="@drawable/selector_side_button"
+            android:clickable="true"
+            android:drawableLeft="@drawable/ic_profile"
+            android:drawablePadding="5dp"
+            android:drawableStart="@drawable/ic_profile"
+            android:gravity="center|center_horizontal"
+            android:text="@string/profile"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/viewItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/profileItem"
+            android:layout_margin="5dp"
+            android:background="@drawable/selector_side_button"
+            android:clickable="true"
+            android:drawableLeft="@drawable/ic_view"
+            android:drawablePadding="5dp"
+            android:drawableStart="@drawable/ic_view"
+            android:gravity="center|center_horizontal"
+            android:text="@string/view"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <View
+            android:id="@+id/menuDivider"
+            android:layout_width="wrap_content"
+            android:layout_height="3dp"
+            android:layout_below="@id/viewItem"
+            android:layout_marginTop="10dp"
+            android:background="@color/orange" />
+
+        <LinearLayout
+            android:id="@+id/statusItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/menuDivider"
+            android:layout_margin="10dp"
+            android:background="@drawable/selector_side_button"
+            android:clickable="true"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/statusTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text="@string/status"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/userStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:text="@string/animated"
+                android:textAppearance="?android:attr/textAppearance"
+                android:textColor="@android:color/darker_gray" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/distanceItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/statusItem"
+            android:layout_margin="10dp"
+            android:background="@drawable/selector_side_button"
+            android:clickable="true"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/distanceTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text="@string/distance"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/userDistance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="3dp"
+                android:paddingRight="3dp"
+                android:text="@string/number"
+                android:textAppearance="?android:attr/textAppearance"
+                android:textColor="@android:color/darker_gray" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/locateItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/distanceItem"
+            android:layout_margin="4dp"
+            android:background="@drawable/selector_side_button"
+            android:clickable="true"
+            android:drawableLeft="@drawable/ic_locate"
+            android:drawablePadding="4dp"
+            android:drawableStart="@drawable/ic_locate"
+            android:gravity="center|center_horizontal"
+            android:text="@string/locate"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/settingsItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/locateItem"
+            android:layout_margin="4dp"
+            android:background="@drawable/selector_side_button"
+            android:clickable="true"
+            android:drawableLeft="@drawable/ic_settings"
+            android:drawablePadding="4dp"
+            android:drawableStart="@drawable/ic_settings"
+            android:gravity="center|center_horizontal"
+            android:text="@string/settings"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </RelativeLayout>
+
+</RelativeLayout>

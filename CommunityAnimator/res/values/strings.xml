@@ -1,0 +1,84 @@
+<!--
+  Copyright 2013 The Android Open Source Project
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<resources>
+
+    <string name="app_name">Community Animator</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_websearch">Search</string>
+
+
+    <!-- Content Description -->
+    <string name="desc_list_item_icon">Item Icon</string>
+
+    <!-- Login/Account creation screen -->
+    <string name="signIn">Sign In</string>
+    <string name="submit">Submit</string>
+    <string name="orText">Or</string>
+    <string name="createAccount">Create Account</string>
+    <string name="usernameHint">Username</string>
+    <string name="passwordHint">Password</string>
+    <string name="confirmPasswordHint">Confirm Password</string>
+    <string name="title_activity_launcher">LauncherActivity</string>
+    <string name="changing_fragments">Changing Fragments</string>
+    <string name="title_activity_create_account">CreateAccountActivity</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="remember">Remember me</string>
+    <string name="forgot"><u>Forgot details?</u></string>
+    <string name="facebook">Connect with Facebook</string>
+    <string name="twitter">Connect with Twitter</string>
+    <string name="signUpQuestion">Don´t have an account?</string>
+    <string name="signUp">Sign Up</string>
+    <string name="social">Sign in with Social Media</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in_register"><b>Sign in</b> or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="action_register">Create Account</string>
+    <string name="menu_forgot_password">Recover lost password</string>
+    <string name="login_progress_signing_in">Signing in</string>
+    <string name="login_progress_password_email">Sending email</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_duplicate_email">This email address is already in use</string>
+    <string name="error_duplicate_username">This username is already in use</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_invalid_confirm_password">Passwords do not match</string>
+    <string name="error_field_required">This field is required</string>
+    
+    
+    <!--  Strings related forget password -->
+    <string name="askEmail">Enter Your Email Address</string>
+    
+    <!-- Strings related to menu -->
+    <string name="profile">Profile</string>
+    <string name="view">View</string>
+    <string name="status">Status</string>
+    <string name="animated">animated</string>
+    <string name="distance">Distance</string>
+    <string name="number">50 feet away</string>
+    <string name="locate">Locate</string>
+    <string name="settings">Settings</string>
+    
+    <!-- Strings related view dialog -->
+    <string name="listView">List View</string>
+    <string name="mapView">Map View</string>
+    <string name="save">Save Changes</string>
+
+</resources>

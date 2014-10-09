@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="apptheme_color">#ee802f</color>
+    <color name="appthemegreen_color">#a4c639</color>
+    <color name="appthemelightblue_color">#33cde5</color>
+    <color name="appthemedarkblue_color">#3b5998</color>
+    <color name="appthemeradiobutton_color">#ee802f</color>
+    <color name="appthemewhite_color">#ffffff</color>
+
+</resources>
