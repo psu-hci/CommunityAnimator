@@ -19,6 +19,8 @@
     <string name="app_name">Community Animator</string>
     <string name="action_settings">Settings</string>
     <string name="action_websearch">Search</string>
+    <string name="facebook_app_id">991607557523053</string>
+    <string name="maps_app_key">AIzaSyD9wpmCtUti0W64UlpKmAmQMmiYSHYSPC4</string>
 
 
     <!-- Content Description -->
@@ -61,6 +63,8 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_invalid_confirm_password">Passwords do not match</string>
     <string name="error_field_required">This field is required</string>
+    <string name="session_invalid_error">Your current session is no longer valid. Please log in again.</string>
+    <string name="logn_generic_error">Something went wrong. Please retry.</string>
     
     
     <!--  Strings related forget password -->
@@ -80,5 +84,12 @@
     <string name="listView">List View</string>
     <string name="mapView">Map View</string>
     <string name="save">Save Changes</string>
+    
+    <!-- Strings related status dialog -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    
+    <!-- Strings related map -->
+    <string name="post_out_of_range">Can\'t view contact! Get closer.</string>
 
 </resources>

@@ -66,4 +66,13 @@
         <item name="android:background">@drawable/appthemewhite_btn_default_holo_light</item>
     </style>
 
+    <style name="SpinnerAppThemeSpinner" parent="android:Widget.Spinner">
+        <item name="android:background">@drawable/appthemespinner_spinner_background_holo_light</item>
+        <item name="android:dropDownSelector">@drawable/appthemespinner_list_selector_holo_light</item>
+    </style>
+
+    <style name="SpinnerDropDownItemAppThemeSpinner" parent="android:Widget.DropDownItem.Spinner">
+        <item name="android:checkMark">@drawable/appthemespinner_btn_radio_holo_light</item>
+    </style>
+
 </resources>

@@ -7,5 +7,6 @@
     <color name="appthemedarkblue_color">#3b5998</color>
     <color name="appthemeradiobutton_color">#ee802f</color>
     <color name="appthemewhite_color">#ffffff</color>
+    <color name="appthemespinner_color">#ee802f</color>
 
 </resources>

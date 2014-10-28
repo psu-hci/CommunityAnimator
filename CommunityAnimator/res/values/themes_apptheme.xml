@@ -45,4 +45,11 @@
         <item name="android:imageButtonStyle">@style/ImageButtonAppThemeWhite</item>
     </style>
 
+    <style name="AppThemeSpinner" parent="@style/_AppThemeSpinner" />
+
+    <style name="_AppThemeSpinner" parent="android:Theme.Light">
+        <item name="android:spinnerStyle">@style/SpinnerAppThemeSpinner</item>
+        <item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItemAppThemeSpinner</item>
+    </style>
+
 </resources>

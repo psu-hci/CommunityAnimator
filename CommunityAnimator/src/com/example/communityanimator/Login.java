@@ -4,18 +4,22 @@ import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.communityanimator.util.Application;
 import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseAnalytics;
@@ -23,11 +27,14 @@ import com.parse.ParseException;
 import com.parse.ParseUser;
 
 public class Login extends Activity {
+
 	Button btn_LoginIn = null;
 	Button btn_SignUp = null;
 	Button btn_facebook = null;
 	Button btn_twitter = null;
 	TextView btn_ForgetPass = null;
+	CheckBox reminder = null;
+
 	private EditText mUserNameEditText;
 	private EditText mPasswordEditText;
 
@@ -57,6 +64,7 @@ public class Login extends Activity {
 		btn_ForgetPass = (TextView) findViewById(R.id.forgot);
 		mUserNameEditText = (EditText) findViewById(R.id.username);
 		mPasswordEditText = (EditText) findViewById(R.id.password);
+		reminder = (CheckBox) findViewById(R.id.remembercheck);
 
 		btn_LoginIn.setOnClickListener(new OnClickListener() {
 
@@ -84,7 +92,7 @@ public class Login extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				// TODO Call Liam´s profile screen
 			}
 		});
 
@@ -92,9 +100,19 @@ public class Login extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+
 				Intent in = new Intent(Login.this, ForgetParsePassword.class);
 				startActivity(in);
+			}
+		});
+
+		btn_facebook.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Intent in = new Intent(Login.this, FacebookLogin.class);
+				startActivity(in);
+
 			}
 		});
 
@@ -103,14 +121,6 @@ public class Login extends Activity {
 	public void onCreateParse() {
 		Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
 				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
-	}
-
-	private void forgotPassword() {
-		/*
-		 * FragmentManager fm = getSupportFragmentManager();
-		 * ForgotPasswordDialogFragment forgotPasswordDialog = new
-		 * ForgotPasswordDialogFragment(); forgotPasswordDialog.show(fm, null);
-		 */
 	}
 
 	public void attemptLogin() {
@@ -157,13 +167,18 @@ public class Login extends Activity {
 
 	private void login(String lowerCase, String password) {
 
+		// Set up a progress dialog
+		final ProgressDialog dialog = new ProgressDialog(Login.this);
+		dialog.setMessage(getString(R.string.login_progress_signing_in));
+		dialog.show();
+
 		ParseUser.logInInBackground(lowerCase, password, new LogInCallback() {
 			@Override
 			public void done(ParseUser user, ParseException e) {
-				// TODO Auto-generated method stub
-				if (e == null)
+				dialog.dismiss();
+				if (e == null) {
 					loginSuccessful();
-				else
+				} else
 					loginUnSuccessful();
 			}
 		});
@@ -171,8 +186,19 @@ public class Login extends Activity {
 	}
 
 	protected void loginSuccessful() {
-		Intent in = new Intent(Login.this, MainActivity.class);
-		startActivity(in);
+
+		if (reminder.isChecked()) {
+			Log.d(Application.APPTAG, "reminder check!");
+			ParseUser user = ParseUser.getCurrentUser();
+			user.put("reminder", true);
+			user.saveInBackground();
+		}
+
+		// Start an intent for the dispatch activity
+		Intent intent = new Intent(Login.this, DispatchActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+				| Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(intent);
 	}
 
 	protected void loginUnSuccessful() {
