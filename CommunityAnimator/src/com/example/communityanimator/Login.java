@@ -93,6 +93,8 @@ public class Login extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Call Liam´s profile screen
+				Intent intent = new Intent(Login.this, SignUp.class);
+				startActivity(intent);
 			}
 		});
 

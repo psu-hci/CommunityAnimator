@@ -1,0 +1,121 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:clipChildren="false"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.screens.MainActivity" >
+
+    <RelativeLayout
+        android:id="@+id/TopHalf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="top"
+        android:background="@android:color/white" >
+
+        <ImageView
+            android:id="@+id/ProfPic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="130dp"
+            android:minWidth="130dp"
+            android:src="@drawable/ic_image"
+            android:contentDescription="@string/Multimedia_Content" />
+
+        <EditText
+            android:id="@+id/NameET"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_alignRight="@id/ProfPic"
+            android:layout_marginBottom="15dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/edittext_round_corners"
+            android:hint="@string/userName"
+            android:inputType="textPersonName"
+            android:selectAllOnFocus="true"
+            android:width="180dp" />
+        
+        <EditText
+            android:id="@+id/DOBET"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/NameET"
+            android:layout_marginBottom="15dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/edittext_round_corners"
+            android:hint="@string/DOB"
+            android:inputType="date"
+            android:selectAllOnFocus="true"
+            android:width="180dp" />
+
+        <EditText
+            android:id="@+id/OccupationET"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/DOBET"
+            android:background="@drawable/edittext_round_corners"
+            android:enabled="false"
+            android:hint="@string/Occupation"
+            android:scrollHorizontally="false"
+            android:selectAllOnFocus="true"
+            android:width="180dp" />
+        
+        <RadioButton
+            android:id="@+id/MaleRB"
+            style="@style/RadioButtonAppThemeRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="110dp"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/OccupationET"
+            android:text="@string/Male" />
+
+        <RadioButton
+            android:id="@+id/FemaleRB"
+            style="@style/RadioButtonAppThemeRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/OccupationET"
+            android:text="@string/Female" />
+
+        <Button
+            android:id="@+id/UploadImage"
+            style="@style/ButtonAppTheme"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/ProfPic"
+            android:minWidth="135dp"
+            android:text="@string/upload_image"
+            android:textSize="16sp" />
+        
+    </RelativeLayout>
+
+<ListView 
+    android:id="@+id/listView1" 
+    android:layout_width="wrap_content"
+ 	android:layout_height="wrap_content"
+ 	android:layout_below="@id/TopHalf"
+ 	android:paddingBottom="70dp"
+ 	android:paddingTop="10dp" />
+
+    <Button
+        android:id="@+id/btn_Save"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="@string/SaveAccount"
+        android:layout_alignBottom="@id/listView1"
+        style="@style/ButtonAppTheme"
+         />
+
+</RelativeLayout>
+
