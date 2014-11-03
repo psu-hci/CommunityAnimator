@@ -22,7 +22,6 @@
     <string name="facebook_app_id">991607557523053</string>
     <string name="maps_app_key">AIzaSyD9wpmCtUti0W64UlpKmAmQMmiYSHYSPC4</string>
 
-
     <!-- Content Description -->
     <string name="desc_list_item_icon">Item Icon</string>
 
@@ -65,11 +64,10 @@
     <string name="error_field_required">This field is required</string>
     <string name="session_invalid_error">Your current session is no longer valid. Please log in again.</string>
     <string name="logn_generic_error">Something went wrong. Please retry.</string>
-    
-    
-    <!--  Strings related forget password -->
+
+    <!-- Strings related forget password -->
     <string name="askEmail">Enter Your Email Address</string>
-    
+
     <!-- Strings related to menu -->
     <string name="profile">Profile</string>
     <string name="view">View</string>
@@ -79,43 +77,63 @@
     <string name="number">50 feet away</string>
     <string name="locate">Locate</string>
     <string name="settings">Settings</string>
-    
+
     <!-- Strings related view dialog -->
     <string name="listView">List View</string>
     <string name="mapView">Map View</string>
     <string name="save">Save Changes</string>
-    
+
     <!-- Strings related status dialog -->
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    
+
     <!-- Strings related map -->
     <string name="post_out_of_range">Can\'t view contact! Get closer.</string>
-    
-    <!--  Strings related to user profile -->
-    
+
+    <!-- Strings related to user profile -->
+
     <string name="upload_image">Upload Image</string>
-	<string name="userName"> Name</string>
-	<string name="DOB"> Date of Birth</string>
-	<string name="Occupation"> Occupation</string>
-	<string name="Male">Male</string>
-	<string name="Female">Female</string>
-	<string name="Multimedia_Content">Multimedia Content</string>
-	<string name="Agriculture_and_Food">Agriculture and Food</string>
-	<string name="Arts_and_Culture">Arts and Culture</string>
-	<string name="Built_Environment">Built Environment</string>
-	<string name="Business_and_Entrepreneurship">Business and Entrepreneurship</string>
-	<string name="Civic_Engagement">Civic Engagement</string>
-	<string name="Communication">Communication</string>
-	<string name="Community">Community</string>
-	<string name="Economy">Economy</string>
-	<string name="Education_and_Learning">Education and Learning</string>
-	<string name="Energy">Energy</string>
-	<string name="Environment_and_Sustainability">Environment and Sustainability</string>
-	<string name="Health_and_Wellness">Health and Wellness</string>
-	<string name="Justice_and_Equality">Justice and Equality</string>
-	<string name="Technology">Technology</string>
-	<string name="Transportation">Transportation</string>
-	<string name="SaveAccount">Save Account</string>
+    <string name="userName"> Name</string>
+    <string name="DOB"> Date of Birth</string>
+    <string name="Occupation"> Occupation</string>
+    <string name="Male">Male</string>
+    <string name="Female">Female</string>
+    <string name="Multimedia_Content">Multimedia Content</string>
+    <string name="Agriculture_and_Food">Agriculture and Food</string>
+    <string name="Arts_and_Culture">Arts and Culture</string>
+    <string name="Built_Environment">Built Environment</string>
+    <string name="Business_and_Entrepreneurship">Business and Entrepreneurship</string>
+    <string name="Civic_Engagement">Civic Engagement</string>
+    <string name="Communication">Communication</string>
+    <string name="Community">Community</string>
+    <string name="Economy">Economy</string>
+    <string name="Education_and_Learning">Education and Learning</string>
+    <string name="Energy">Energy</string>
+    <string name="Environment_and_Sustainability">Environment and Sustainability</string>
+    <string name="Health_and_Wellness">Health and Wellness</string>
+    <string name="Justice_and_Equality">Justice and Equality</string>
+    <string name="Technology">Technology</string>
+    <string name="Transportation">Transportation</string>
+    <string name="SaveAccount">Save Account</string>
+
+    <!-- Strings from Settings Summary -->
+    <string name="wifi_only">On/Off</string>
+    <string name="ringtone">Play sounds for incoming and outoing messages</string>
+    <string name="vibrate">Vibrate device when new message arrives while application is running</string>
+    <string name="show">Enable to also use hidden contacts</string>
+    <string name="contactUs">Questions? Comments? Need Help?</string>
+    
+    <!-- Strings from Settings title -->
+    <string name="wifiTitle">Wifi only</string>
+    <string name="notificationsTitle">Notifications</string>
+    <string name="tonesTitle">Conversations tones</string>
+    <string name="vibrateTitle">Vibrate</string>
+    <string name="tellTitle">Tell a friend</string>
+    <string name="contactsTitle">Show all contacts</string>
+    <string name="helpTitle">Help</string>
+    <string name="aboutTitle">About</string>
+    <string name="faqTitle">FAQ</string>
+    <string name="contactUsTitle">Contact Us</string>
+    <string name="logOutTitle">Log Out</string>
 
 </resources>

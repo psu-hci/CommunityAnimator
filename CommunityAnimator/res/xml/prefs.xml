@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
+
+    <PreferenceCategory
+        android:summary="Username and password information"
+        android:title="Settings" >
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="wifi"
+            android:summary="@string/wifi_only"
+            android:title="@string/wifiTitle" />
+
+        <PreferenceScreen android:key="notifications" 
+            android:title="@string/notificationsTitle">
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="ringtone"
+                android:summary="@string/ringtone"
+                android:title="@string/tonesTitle" />
+
+            <SwitchPreference
+                android:defaultValue="true"
+                android:key="vibrate"
+                android:summary="@string/vibrate"
+                android:title="@string/vibrateTitle" />
+        </PreferenceScreen>
+
+        <PreferenceScreen android:key="contacts"
+            android:title="Contacts" >
+            <EditTextPreference
+                android:key="email"
+                android:title="@string/tellTitle" />
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="show"
+                android:summary="@string/show"
+                android:title="@string/contactsTitle" />
+        </PreferenceScreen>
+
+        <PreferenceScreen android:key="help"
+            android:title="@string/helpTitle" >
+            <Preference
+                android:key="about"
+                android:title="@string/aboutTitle" />
+            <Preference
+                android:key="faq"
+                android:title="@string/faqTitle" />
+            <Preference
+                android:key="contactUs"
+                android:summary="@string/contactUs"
+                android:title="@string/contactUsTitle" />
+        </PreferenceScreen>
+
+        <Preference
+            android:key="logout"
+            android:title="@string/logOutTitle" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

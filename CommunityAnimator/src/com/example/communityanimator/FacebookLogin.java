@@ -40,7 +40,8 @@ public class FacebookLogin extends Activity {
 
 	private void onLoginButtonClicked() {
 
-		List<String> permissions = Arrays.asList("public_profile");
+		List<String> permissions = Arrays.asList("public_profile", "user_name",
+				"user_gender", "user_email", "user_birthday", "user_location");
 		ParseFacebookUtils.logIn(permissions, FacebookLogin.this,
 				new LogInCallback() {
 					@Override
@@ -71,7 +72,7 @@ public class FacebookLogin extends Activity {
 								Response response) {
 							if (user != null) {
 								ParseUser.getCurrentUser().put("firstName",
-										user.getFirstName());
+										user.getUsername());
 								ParseUser.getCurrentUser().saveInBackground();
 								finishActivity();
 							} else if (response.getError() != null) {

@@ -134,6 +134,7 @@ public class MainActivity extends Activity implements LocationListener,
 	RelativeLayout menuView, mapView;
 	LinearLayout listView;
 	TextView userStatus, userDistance;
+	String label;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -237,7 +238,10 @@ public class MainActivity extends Activity implements LocationListener,
 
 			@Override
 			public void onClick(View v) {
-				// TODO call Liam´s profile screen
+				String flag = "MainView";
+				Intent intent = new Intent(MainActivity.this, SignUp.class);
+				intent.putExtra(flag, label);
+				startActivity(intent);
 
 			}
 		});
@@ -433,8 +437,10 @@ public class MainActivity extends Activity implements LocationListener,
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
 
+				Intent intent = new Intent(MainActivity.this,
+						PrefsActivity.class);
+				startActivity(intent);
 			}
 		});
 	}

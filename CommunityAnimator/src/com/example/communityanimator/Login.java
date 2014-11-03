@@ -92,7 +92,6 @@ public class Login extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Call Liam´s profile screen
 				Intent intent = new Intent(Login.this, SignUp.class);
 				startActivity(intent);
 			}
@@ -115,6 +114,15 @@ public class Login extends Activity {
 				Intent in = new Intent(Login.this, FacebookLogin.class);
 				startActivity(in);
 
+			}
+		});
+
+		btn_twitter.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Intent in = new Intent(Login.this, TwitterLogin.class);
+				startActivity(in);
 			}
 		});
 
