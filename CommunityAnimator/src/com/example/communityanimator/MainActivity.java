@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Color;
@@ -93,7 +94,7 @@ public class MainActivity extends Activity implements LocationListener,
 	private static final float OFFSET_CALCULATION_ACCURACY = 0.01f;
 
 	// Maximum results returned from a Parse query
-	private static final int MAX_POST_SEARCH_RESULTS = 20;
+	private static final int MAX_SEARCH_RESULTS = 20;
 
 	// Maximum post search radius for map in kilometers
 	private static final int MAX_POST_SEARCH_DISTANCE = 100;
@@ -134,7 +135,6 @@ public class MainActivity extends Activity implements LocationListener,
 	RelativeLayout menuView, mapView;
 	LinearLayout listView;
 	TextView userStatus, userDistance;
-	String label;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -173,7 +173,7 @@ public class MainActivity extends Activity implements LocationListener,
 				query.orderByDescending("createdAt");
 				query.whereWithinMiles("location", geoPointFromLocation(myLoc),
 						radius);
-				query.setLimit(MAX_POST_SEARCH_RESULTS);
+				query.setLimit(MAX_SEARCH_RESULTS);
 				return query;
 			}
 		};
@@ -240,7 +240,7 @@ public class MainActivity extends Activity implements LocationListener,
 			public void onClick(View v) {
 				String flag = "MainView";
 				Intent intent = new Intent(MainActivity.this, SignUp.class);
-				intent.putExtra(flag, label);
+				intent.putExtra(flag, "MainView");
 				startActivity(intent);
 
 			}
@@ -547,7 +547,8 @@ public class MainActivity extends Activity implements LocationListener,
 		Log.d(Application.APPTAG, "initializeList!");
 		// Set up the list fragment
 		list = (ListView) findViewById(R.id.list);
-		CustomList adapter = new CustomList(MainActivity.this, contacts);
+		CustomListAdapter adapter = new CustomListAdapter(MainActivity.this,
+				contacts);
 		list.setVisibility(View.VISIBLE);
 		list.setAdapter(adapter);
 		adapter.notifyDataSetChanged();
@@ -723,7 +724,7 @@ public class MainActivity extends Activity implements LocationListener,
 		Log.d(Application.APPTAG, "onLocationChanged!");
 		currentLocation = location;
 		if (lastLocation != null
-				&& geoPointFromLocation(location).distanceInKilometersTo(
+				&& geoPointFromLocation(location).distanceInMilesTo(
 						geoPointFromLocation(lastLocation)) < 0.01) {
 			// If the location hasn't changed by more than 10 meters, ignore it.
 			return;
@@ -736,6 +737,10 @@ public class MainActivity extends Activity implements LocationListener,
 			updateZoom(myLatLng);
 			hasSetUpInitialLocation = true;
 		}
+
+		// Saving new user location
+		saveUserLocation();
+
 		// Update map radius indicator
 		updateCircle(myLatLng);
 		doMapQuery();
@@ -775,6 +780,21 @@ public class MainActivity extends Activity implements LocationListener,
 	}
 
 	/*
+	 * Save the user location on database
+	 */
+	private void saveUserLocation() {
+		Location myLoc = (currentLocation == null) ? lastLocation
+				: currentLocation;
+
+		if (myLoc == null) {
+			return;
+		}
+		// Saving user location
+		ParseUser user = ParseUser.getCurrentUser();
+		user.put("location", geoPointFromLocation(myLoc));
+	}
+
+	/*
 	 * Set up a query to update the list view
 	 */
 	private void doListQuery() {
@@ -811,7 +831,7 @@ public class MainActivity extends Activity implements LocationListener,
 		mapQuery.whereWithinMiles("location", myPoint, MAX_POST_SEARCH_DISTANCE);
 		mapQuery.include("user");
 		mapQuery.orderByDescending("createdAt");
-		mapQuery.setLimit(MAX_POST_SEARCH_RESULTS);
+		mapQuery.setLimit(MAX_SEARCH_RESULTS);
 		// Kick off the query in the background
 		mapQuery.findInBackground(new FindCallback<ParseUser>() {
 			@Override
@@ -1102,5 +1122,26 @@ public class MainActivity extends Activity implements LocationListener,
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
 			return mDialog;
 		}
+	}
+
+	@Override
+	public void onBackPressed() {
+		new AlertDialog.Builder(this)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setTitle("Closing Activity")
+				.setMessage("Do you want to leave this screen?")
+				.setPositiveButton("Yes",
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								finish();
+								Intent i = new Intent(getApplicationContext(),
+										Login.class);
+								i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+								startActivity(i);
+							}
+
+						}).setNegativeButton("No", null).show();
 	}
 }

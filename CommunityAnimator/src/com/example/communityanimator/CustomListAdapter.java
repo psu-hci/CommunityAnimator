@@ -14,13 +14,13 @@ import android.widget.TextView;
 import com.example.communityanimator.util.Application;
 import com.parse.ParseUser;
 
-public class CustomList extends BaseAdapter {
+public class CustomListAdapter extends BaseAdapter {
 
 	private LayoutInflater mInflater;
 	private List<ParseUser> user;
 	Context mContext;
 
-	public CustomList(Context context, List<ParseUser> objects) {
+	public CustomListAdapter(Context context, List<ParseUser> objects) {
 		this.mContext = context;
 		this.user = objects;
 

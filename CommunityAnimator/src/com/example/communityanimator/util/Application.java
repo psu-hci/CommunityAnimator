@@ -3,9 +3,11 @@ package com.example.communityanimator.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.example.communityanimator.MainActivity;
 import com.example.communityanimator.database.User;
 import com.parse.Parse;
 import com.parse.ParseObject;
+import com.parse.PushService;
 
 public class Application extends android.app.Application {
 	// Debugging switch
@@ -36,6 +38,9 @@ public class Application extends android.app.Application {
 		ParseObject.registerSubclass(User.class);
 		Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
 				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
+
+		// Specify an Activity to handle all pushes by default.
+		PushService.setDefaultPushCallback(this, MainActivity.class);
 
 		preferences = getSharedPreferences("com.example.communityanimator",
 				Context.MODE_PRIVATE);

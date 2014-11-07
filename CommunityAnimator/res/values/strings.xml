@@ -59,7 +59,7 @@
     <string name="error_duplicate_email">This email address is already in use</string>
     <string name="error_duplicate_username">This username is already in use</string>
     <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_invalid_password">This password is too short </string>
     <string name="error_invalid_confirm_password">Passwords do not match</string>
     <string name="error_field_required">This field is required</string>
     <string name="session_invalid_error">Your current session is no longer valid. Please log in again.</string>
@@ -96,6 +96,7 @@
     <string name="userName"> Name</string>
     <string name="DOB"> Date of Birth</string>
     <string name="Occupation"> Occupation</string>
+    <string name="email">Email</string>
     <string name="Male">Male</string>
     <string name="Female">Female</string>
     <string name="Multimedia_Content">Multimedia Content</string>
@@ -115,6 +116,7 @@
     <string name="Technology">Technology</string>
     <string name="Transportation">Transportation</string>
     <string name="SaveAccount">Save Account</string>
+    <string name="progress_signUp">Signing up...</string>
 
     <!-- Strings from Settings Summary -->
     <string name="wifi_only">On/Off</string>

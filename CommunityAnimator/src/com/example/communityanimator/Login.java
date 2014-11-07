@@ -247,4 +247,21 @@ public class Login extends Activity {
 		alertDialog.show();
 	}
 
+	@Override
+	public void onBackPressed() {
+		new AlertDialog.Builder(this)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setTitle("Closing Aplication")
+				.setMessage("Do you want to close this aplication?")
+				.setPositiveButton("Yes",
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								finish();
+							}
+
+						}).setNegativeButton("No", null).show();
+	}
+
 }
