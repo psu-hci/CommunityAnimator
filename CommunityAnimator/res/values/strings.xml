@@ -110,7 +110,7 @@
     <string name="vibrate">Vibrate device when new message arrives while application is running</string>
     <string name="show">Enable to also use hidden contacts</string>
     <string name="contactUs">Questions? Comments? Need Help?</string>
-    
+
     <!-- Strings from Settings title -->
     <string name="wifiTitle">Wifi only</string>
     <string name="notificationsTitle">Notifications</string>
@@ -123,5 +123,12 @@
     <string name="faqTitle">FAQ</string>
     <string name="contactUsTitle">Contact Us</string>
     <string name="logOutTitle">Log Out</string>
+
+    <!-- Strings related to help settings -->
+    <string name="aboutDialog">About Community Animator</string>
+    <string name="about1">The Community Animation mobile application has been created to increase the num-ber of civic relationships in the local community.</string>
+    <string name="about2">The application asks users to sign in, then create an acco-unt to select from a list of civic interests. Once an acco-unt is created, users geolo-cation on their smartphone allows Community Animation to connect and coordinate with users in 
+close proximity with matching civic interests.</string>
+
 
 </resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/background_light"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/activity_lateral_margin"
+    android:paddingRight="@dimen/activity_lateral_margin" >
+
+    <android.webkit.WebView
+        android:id="@+id/faqView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+    </android.webkit.WebView>
+
+</LinearLayout>
