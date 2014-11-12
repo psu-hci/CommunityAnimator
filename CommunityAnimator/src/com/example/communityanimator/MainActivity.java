@@ -169,10 +169,13 @@ public class MainActivity extends Activity implements LocationListener,
 						: currentLocation;
 
 				ParseQuery<ParseUser> query = ParseUser.getQuery();
-				query.include("user");
 				query.orderByAscending("username");
 				query.whereWithinMiles("location", geoPointFromLocation(myLoc),
 						radius);
+				query.whereNotEqualTo("username", ParseUser.getCurrentUser()
+						.getUsername());
+				query.whereContainedIn("interestList", ParseUser
+						.getCurrentUser().getList("interestList"));
 				query.setLimit(MAX_SEARCH_RESULTS);
 				return query;
 			}
@@ -447,7 +450,6 @@ public class MainActivity extends Activity implements LocationListener,
 
 	private void loadUserMenu() {
 		// Check view chosen by user
-
 		menuView = (RelativeLayout) findViewById(R.id.menuView);
 		mapView = (RelativeLayout) findViewById(R.id.mapLayout);
 		listView = (LinearLayout) findViewById(R.id.listLayout);
@@ -829,8 +831,11 @@ public class MainActivity extends Activity implements LocationListener,
 		ParseQuery<ParseUser> mapQuery = ParseUser.getQuery();
 		// Set up additional query filters
 		mapQuery.whereWithinMiles("location", myPoint, MAX_POST_SEARCH_DISTANCE);
-		mapQuery.include("user");
-		mapQuery.orderByDescending("createdAt");
+		mapQuery.whereNotEqualTo("username", ParseUser.getCurrentUser()
+				.getUsername());
+		mapQuery.whereContainedIn("interestList", ParseUser.getCurrentUser()
+				.getList("interestList"));
+		mapQuery.orderByAscending("username");
 		mapQuery.setLimit(MAX_SEARCH_RESULTS);
 		// Kick off the query in the background
 		mapQuery.findInBackground(new FindCallback<ParseUser>() {
