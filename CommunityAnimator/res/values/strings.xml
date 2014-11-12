@@ -87,6 +87,8 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
 
+    <!-- Strings related locate dialog -->
+    <string name="locateUser">Type your friend´s name:</string>
     <!-- Strings related map -->
     <string name="post_out_of_range">Can\'t view contact! Get closer.</string>
 
@@ -99,22 +101,6 @@
     <string name="email">Email</string>
     <string name="Male">Male</string>
     <string name="Female">Female</string>
-    <string name="Multimedia_Content">Multimedia Content</string>
-    <string name="Agriculture_and_Food">Agriculture and Food</string>
-    <string name="Arts_and_Culture">Arts and Culture</string>
-    <string name="Built_Environment">Built Environment</string>
-    <string name="Business_and_Entrepreneurship">Business and Entrepreneurship</string>
-    <string name="Civic_Engagement">Civic Engagement</string>
-    <string name="Communication">Communication</string>
-    <string name="Community">Community</string>
-    <string name="Economy">Economy</string>
-    <string name="Education_and_Learning">Education and Learning</string>
-    <string name="Energy">Energy</string>
-    <string name="Environment_and_Sustainability">Environment and Sustainability</string>
-    <string name="Health_and_Wellness">Health and Wellness</string>
-    <string name="Justice_and_Equality">Justice and Equality</string>
-    <string name="Technology">Technology</string>
-    <string name="Transportation">Transportation</string>
     <string name="SaveAccount">Save Account</string>
     <string name="progress_signUp">Signing up...</string>
 
