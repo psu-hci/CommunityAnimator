@@ -9,30 +9,32 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class CategoriesAdapter extends ArrayAdapter<Categories> {
 
-	private ArrayList<Categories> countryList;
+	ArrayList<Categories> mCategoriesList;
 	Context mContext;
+	boolean[] itemChecked;
 
 	public CategoriesAdapter(Context context, int textViewResourceId,
-			ArrayList<Categories> countryList) {
-		super(context, textViewResourceId, countryList);
+			ArrayList<Categories> categoriesList) {
+		super(context, textViewResourceId, categoriesList);
 		this.mContext = context;
-		this.countryList = new ArrayList<Categories>();
-		this.countryList.addAll(countryList);
+		this.mCategoriesList = new ArrayList<Categories>();
+		this.mCategoriesList.addAll(categoriesList);
+
+		itemChecked = new boolean[mCategoriesList.size()];
 	}
 
 	private class ViewHolder {
 		TextView name;
-		CheckBox code;
+		CheckBox check;
 	}
 
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+	public View getView(final int position, View convertView, ViewGroup parent) {
 
-		ViewHolder holder = null;
+		final ViewHolder holder;
 
 		if (convertView == null) {
 			LayoutInflater vi = (LayoutInflater) mContext
@@ -41,28 +43,36 @@ public class CategoriesAdapter extends ArrayAdapter<Categories> {
 
 			holder = new ViewHolder();
 			holder.name = (TextView) convertView.findViewById(R.id.code);
-			holder.code = (CheckBox) convertView.findViewById(R.id.checkBox1);
+			holder.check = (CheckBox) convertView.findViewById(R.id.checkBox1);
 			convertView.setTag(holder);
 
-			holder.code.setOnClickListener(new View.OnClickListener() {
+			holder.check.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
+					// if (holder.check.isChecked())
+					// itemChecked[position] = true;
+					// else
+					// itemChecked[position] = false;
+
 					CheckBox cb = (CheckBox) v;
-					Categories country = (Categories) cb.getTag();
-					Toast.makeText(
-							mContext,
-							"Clicked on Checkbox: " + cb.getText() + " is "
-									+ cb.isChecked(), Toast.LENGTH_LONG).show();
-					country.setSelected(cb.isChecked());
+					Categories c = (Categories) cb.getTag();
+					c.setSelected(cb.isChecked());
 				}
 			});
+
 		} else {
 			holder = (ViewHolder) convertView.getTag();
 		}
 
-		Categories country = countryList.get(position);
-		holder.name.setText(country.getName());
-		holder.code.setChecked(country.isSelected());
+		Categories c = mCategoriesList.get(position);
+		holder.name.setText(c.getName());
+		holder.check.setChecked(c.isSelected());
+		holder.check.setTag(c);
+
+		// if (itemChecked[position])
+		// holder.check.setChecked(true);
+		// else
+		// holder.check.setChecked(false);
 
 		return convertView;
 

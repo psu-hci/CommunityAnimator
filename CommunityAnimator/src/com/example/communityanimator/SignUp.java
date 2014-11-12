@@ -1,6 +1,7 @@
 package com.example.communityanimator;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,10 +9,12 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -22,6 +25,8 @@ import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
@@ -31,24 +36,20 @@ public class SignUp extends Activity implements
 
 	CategoriesAdapter dataAdapter = null;
 	ParseUser user;
-	String view;
+	List<ParseObject> ob;
+	ProgressDialog mProgressDialog;
+	ListView listView;
 	EditText usernameEditText, passwordEditText, dateEditText,
 			occupationEditText, emailEditText;
 	RadioButton male, female;
 	LocationClient mLocationClient;
 	Location location;
+	String view;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.user_profile);
-
-		Intent i = getIntent();
-
-		if (i.hasExtra("MainView")) {
-			view = i.getStringExtra("MainView");
-			profileView();
-		}
 
 		// Setup SignUp form
 		usernameEditText = (EditText) findViewById(R.id.NameET);
@@ -58,6 +59,13 @@ public class SignUp extends Activity implements
 		emailEditText = (EditText) findViewById(R.id.EmailET);
 		male = (RadioButton) findViewById(R.id.MaleRB);
 		female = (RadioButton) findViewById(R.id.FemaleRB);
+		listView = (ListView) findViewById(R.id.listView1);
+		listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+
+		Intent i = getIntent();
+		if (i.hasExtra("MainView")) {
+			view = "MainView";
+		}
 
 		Button saveProfile = (Button) findViewById(R.id.btn_Save);
 		saveProfile.setOnClickListener(new View.OnClickListener() {
@@ -69,12 +77,11 @@ public class SignUp extends Activity implements
 			}
 		});
 
-		// Generate list View from ArrayList
-		displayListView();
-
 		// Create the LocationRequest object
 		mLocationClient = new LocationClient(this, this, this);
 
+		// Generate list View from ArrayList
+		new RemoteDataTask().execute();
 	}
 
 	@Override
@@ -88,49 +95,6 @@ public class SignUp extends Activity implements
 	protected void onStop() {
 		mLocationClient.disconnect();
 		super.onStop();
-	}
-
-	private void displayListView() {
-
-		// Array list of countries
-		ArrayList<Categories> countryList = new ArrayList<Categories>();
-		Categories country = new Categories("Agriculture and Food", false);
-		countryList.add(country);
-		country = new Categories("Arts and Culture", true);
-		countryList.add(country);
-		country = new Categories("Built Environment", false);
-		countryList.add(country);
-		country = new Categories("Business and Entrepreneurship", true);
-		countryList.add(country);
-		country = new Categories("Civic Engagement", true);
-		countryList.add(country);
-		country = new Categories("Communication", false);
-		countryList.add(country);
-		country = new Categories("Community", false);
-		countryList.add(country);
-		country = new Categories("Economy", false);
-		countryList.add(country);
-		country = new Categories("Education and Learning", false);
-		countryList.add(country);
-		country = new Categories("Energy", false);
-		countryList.add(country);
-		country = new Categories("Environment and Sustainability", false);
-		countryList.add(country);
-		country = new Categories("Health and Wellness", false);
-		countryList.add(country);
-		country = new Categories("Justice and Equality", false);
-		countryList.add(country);
-		country = new Categories("Technology", false);
-		countryList.add(country);
-		country = new Categories("Transportation", false);
-		countryList.add(country);
-
-		// create an ArrayAdaptar from the String Array
-		dataAdapter = new CategoriesAdapter(this, R.layout.interest_items,
-				countryList);
-		ListView listView = (ListView) findViewById(R.id.listView1);
-		// Assign adapter to ListView
-		listView.setAdapter(dataAdapter);
 	}
 
 	private void signup() {
@@ -217,6 +181,7 @@ public class SignUp extends Activity implements
 		user.put("view", true);
 		user.put("distance", 0);
 
+		// save user location
 		if (location != null) {
 			ParseGeoPoint point = new ParseGeoPoint(location.getLatitude(),
 					location.getLongitude());
@@ -224,6 +189,20 @@ public class SignUp extends Activity implements
 		} else {
 			displayCurrentLocation();
 		}
+
+		// Get user interests
+		CheckBox cb;
+		ArrayList<String> interests = new ArrayList<String>();
+
+		for (int x = 0; x < listView.getCount(); x++) {
+			cb = (CheckBox) listView.getChildAt(x).findViewById(R.id.checkBox1);
+
+			if (cb.isChecked()) {
+				interests.add(ob.get(x).getObjectId());
+			}
+		}
+		// Add interest list in current user
+		user.put("interestList", interests);
 
 		// Call the Parse signup method
 		user.signUpInBackground(new SignUpCallback() {
@@ -251,13 +230,16 @@ public class SignUp extends Activity implements
 
 		// Retrieve data from database
 		ParseUser user = ParseUser.getCurrentUser();
+
 		String username = user.getUsername();
+		String password = user.getString("password");
 		String date = user.getString("dateBirth");
 		String occupation = user.getString("occupation");
 		String email = user.getString("email");
 		String gender = user.getString("gender");
 
 		usernameEditText.setText(username);
+		passwordEditText.setText(password);
 		dateEditText.setText(date);
 		occupationEditText.setText(occupation);
 		emailEditText.setText(email);
@@ -268,6 +250,21 @@ public class SignUp extends Activity implements
 			female.setChecked(true);
 		}
 
+		CheckBox cb;
+		@SuppressWarnings("unchecked")
+		ArrayList<String> userInterest = (ArrayList<String>) user
+				.get("interestList");
+
+		for (int i = 0; i < userInterest.size(); i++) {
+			for (int j = 0; j < listView.getCount(); j++) {
+
+				if (userInterest.get(i).equals(ob.get(j).getObjectId())) {
+					cb = (CheckBox) listView.getChildAt(j).findViewById(
+							R.id.checkBox1);
+					cb.setChecked(true);
+				}
+			}
+		}
 	}
 
 	/**
@@ -312,6 +309,68 @@ public class SignUp extends Activity implements
 		// Display the connection status
 		Toast.makeText(this, "Disconnected. Please re-connect.",
 				Toast.LENGTH_SHORT).show();
+	}
+
+	// RemoteDataTask AsyncTask
+	private class RemoteDataTask extends AsyncTask<Void, Void, Void> {
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			// Create a progressdialog
+			mProgressDialog = new ProgressDialog(SignUp.this);
+			// Set progressdialog message
+			mProgressDialog.setMessage("Loading...");
+			mProgressDialog.setIndeterminate(false);
+			// Show progressdialog
+			mProgressDialog.show();
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			// Locate the class table named "Interest" in Parse.com
+			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(
+					"Interest");
+			query.orderByAscending("_created_at");
+			try {
+				ob = query.find();
+			} catch (ParseException e) {
+				Log.e("Error", e.getMessage());
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+
+			ArrayList<Categories> categoriesList = new ArrayList<Categories>();
+
+			// Retrieve object "interestName" from Parse.com database
+			for (ParseObject categories : ob) {
+				Categories c = new Categories(
+						(String) categories.get("interestName"), false);
+				categoriesList.add(c);
+			}
+
+			dataAdapter = new CategoriesAdapter(SignUp.this,
+					R.layout.interest_items, categoriesList);
+
+			// Binds the Adapter to the ListView
+			listView.setAdapter(dataAdapter);
+
+			listView.post(new Runnable() {
+				@Override
+				public void run() {
+
+					if (view == "MainView") {
+						profileView();
+					}
+
+				}
+			});
+			// Close the progressdialog
+			mProgressDialog.dismiss();
+		}
 	}
 
 }

@@ -170,7 +170,7 @@ public class MainActivity extends Activity implements LocationListener,
 
 				ParseQuery<ParseUser> query = ParseUser.getQuery();
 				query.include("user");
-				query.orderByDescending("createdAt");
+				query.orderByAscending("username");
 				query.whereWithinMiles("location", geoPointFromLocation(myLoc),
 						radius);
 				query.setLimit(MAX_SEARCH_RESULTS);
