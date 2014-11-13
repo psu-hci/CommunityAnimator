@@ -63,7 +63,6 @@
         </activity>
         <activity
             android:name=".SignUp"
-            android:noHistory="true"
             android:screenOrientation="portrait" >
         </activity>
         <activity

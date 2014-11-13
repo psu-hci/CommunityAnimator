@@ -1,6 +1,7 @@
 package com.example.communityanimator.database;
 
 import com.parse.ParseClassName;
+import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -67,6 +68,14 @@ public class User extends ParseObject {
 
 	public void setLocation(ParseGeoPoint value) {
 		put("location", value);
+	}
+
+	public ParseFile getPhotoFile() {
+		return getParseFile("image");
+	}
+
+	public void setPhotoFile(ParseFile file) {
+		put("image", file);
 	}
 
 	public static ParseQuery<User> getQuery() {

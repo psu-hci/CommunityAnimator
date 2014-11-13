@@ -1,5 +1,7 @@
 package com.example.communityanimator;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -8,22 +10,30 @@ import java.util.regex.Pattern;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.example.communityanimator.util.Application;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.parse.ParseException;
+import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -34,6 +44,11 @@ public class SignUp extends Activity implements
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 
+	private static int RESULT_LOAD_IMAGE = 1;
+	private String selectedImagePath;
+	// ADDED
+	private String filemanagerstring;
+
 	CategoriesAdapter dataAdapter = null;
 	ParseUser user;
 	List<ParseObject> ob;
@@ -42,6 +57,8 @@ public class SignUp extends Activity implements
 	EditText usernameEditText, passwordEditText, dateEditText,
 			occupationEditText, emailEditText;
 	RadioButton male, female;
+	ImageView profileImage;
+	byte[] image;
 	LocationClient mLocationClient;
 	Location location;
 	String view;
@@ -59,6 +76,7 @@ public class SignUp extends Activity implements
 		emailEditText = (EditText) findViewById(R.id.EmailET);
 		male = (RadioButton) findViewById(R.id.MaleRB);
 		female = (RadioButton) findViewById(R.id.FemaleRB);
+		profileImage = (ImageView) findViewById(R.id.ProfPic);
 		listView = (ListView) findViewById(R.id.listView1);
 		listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
@@ -66,6 +84,22 @@ public class SignUp extends Activity implements
 		if (i.hasExtra("MainView")) {
 			view = "MainView";
 		}
+
+		Button uploadImage = (Button) findViewById(R.id.UploadImage);
+		uploadImage.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// Open Gallery
+				Log.d("SignUP", "open gallery");
+				Intent intent = new Intent();
+				intent.setType("image/*");
+				intent.setAction(Intent.ACTION_GET_CONTENT);
+				startActivityForResult(
+						Intent.createChooser(intent, "Select File"),
+						RESULT_LOAD_IMAGE);
+			}
+		});
 
 		Button saveProfile = (Button) findViewById(R.id.btn_Save);
 		saveProfile.setOnClickListener(new View.OnClickListener() {
@@ -97,6 +131,85 @@ public class SignUp extends Activity implements
 		super.onStop();
 	}
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		Log.d("SignUP", "onActivityResult");
+		if (resultCode == RESULT_OK) {
+			if (requestCode == RESULT_LOAD_IMAGE) {
+
+				Uri selectedImage = data.getData();
+
+				// OI FILE Manager
+				filemanagerstring = selectedImage.getPath();
+				// MEDIA GALLERY
+				selectedImagePath = getPath(selectedImage);
+
+				Bitmap bmp = null;
+				try {
+					bmp = decodeUri(selectedImage);
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				profileImage.setImageBitmap(bmp);
+
+				// Convert it to byte
+				ByteArrayOutputStream stream = new ByteArrayOutputStream();
+				// Compress image to lower quality scale 1 - 100
+				bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+				image = stream.toByteArray();
+			}
+		}
+	}
+
+	private Bitmap decodeUri(Uri selectedImage) throws FileNotFoundException {
+
+		// Decode image size
+		BitmapFactory.Options o = new BitmapFactory.Options();
+		o.inJustDecodeBounds = true;
+		BitmapFactory.decodeStream(
+				getContentResolver().openInputStream(selectedImage), null, o);
+
+		// The new size we want to scale to
+		final int REQUIRED_SIZE = 140;
+
+		// Find the correct scale value. It should be the power of 2.
+		int width_tmp = o.outWidth, height_tmp = o.outHeight;
+		int scale = 1;
+		while (true) {
+			if (width_tmp / 2 < REQUIRED_SIZE || height_tmp / 2 < REQUIRED_SIZE) {
+				break;
+			}
+			width_tmp /= 2;
+			height_tmp /= 2;
+			scale *= 2;
+		}
+
+		// Decode with inSampleSize
+		BitmapFactory.Options o2 = new BitmapFactory.Options();
+		o2.inSampleSize = scale;
+		return BitmapFactory.decodeStream(
+				getContentResolver().openInputStream(selectedImage), null, o2);
+
+	}
+
+	public String getPath(Uri uri) {
+		String[] projection = { MediaStore.Images.Media.DATA };
+		@SuppressWarnings("deprecation")
+		Cursor cursor = managedQuery(uri, projection, null, null, null);
+		if (cursor != null) {
+			// HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
+			// THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
+			int column_index = cursor
+					.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+			cursor.moveToFirst();
+			return cursor.getString(column_index);
+		} else
+			return null;
+	}
+
 	private void signup() {
 
 		String username = usernameEditText.getText().toString().trim();
@@ -110,6 +223,7 @@ public class SignUp extends Activity implements
 		boolean validationError = false;
 		StringBuilder validationErrorMessage = new StringBuilder(
 				getString(R.string.logn_generic_error));
+		// TODO: verify duplicate username
 		if (username.length() == 0) {
 			validationError = true;
 			validationErrorMessage
@@ -193,8 +307,8 @@ public class SignUp extends Activity implements
 		// Get user interests
 		CheckBox cb;
 		ArrayList<String> interests = new ArrayList<String>();
-
-		for (int x = 0; x < listView.getCount(); x++) {
+		// TODO:verify this listview.getchildat and listview.getchildcount
+		for (int x = 0; x < listView.getChildCount(); x++) {
 			cb = (CheckBox) listView.getChildAt(x).findViewById(R.id.checkBox1);
 
 			if (cb.isChecked()) {
@@ -203,6 +317,25 @@ public class SignUp extends Activity implements
 		}
 		// Add interest list in current user
 		user.put("interestList", interests);
+
+		// Verify if the user uploaded an image
+		if (image.length != 0) {
+			Log.d(Application.APPTAG, "entrou image not null!!");
+			// Create the ParseFile to upload image
+			ParseFile file = new ParseFile(user.getUsername() + ".png", image);
+			// Upload the image into Parse Cloud
+			file.saveInBackground();
+			// Create a New Class called "ImageUpload" in Parse
+			ParseObject imgupload = new ParseObject("imageUpload");
+			// Create a column named "ImageName" and set the string
+			imgupload.put("imageUser", username);
+			// Create a column named "ImageName" and set the string
+			imgupload.put("imageName", file.getName());
+			// Create a column named "ImageFile" and insert the image
+			imgupload.put("imageFile", file);
+			// Create the class and the columns
+			imgupload.saveInBackground();
+		}
 
 		// Call the Parse signup method
 		user.signUpInBackground(new SignUpCallback() {

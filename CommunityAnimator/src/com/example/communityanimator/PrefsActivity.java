@@ -125,7 +125,7 @@ public class PrefsActivity extends PreferenceActivity {
 
 					// Verify the intent will resolve to at least one activity
 					if (intent.resolveActivity(getPackageManager()) != null) {
-						startActivity(chooser);
+						startActivity(chooser); // TODO: verify chooser
 					}
 					return true;
 				} else {
