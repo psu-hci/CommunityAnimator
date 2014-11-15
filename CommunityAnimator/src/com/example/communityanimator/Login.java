@@ -24,6 +24,7 @@ import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
+import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 
 public class Login extends Activity {
@@ -45,7 +46,6 @@ public class Login extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
 
@@ -157,14 +157,6 @@ public class Login extends Activity {
 			cancel = true;
 		}
 
-		// Check for a valid email address.
-		if (TextUtils.isEmpty(username)) {
-			mUserNameEditText
-					.setError(getString(R.string.error_field_required));
-			focusView = mUserNameEditText;
-			cancel = true;
-		}
-
 		if (cancel) {
 			// There was an error; don't attempt login and focus the first
 			// form field with an error.
@@ -188,6 +180,11 @@ public class Login extends Activity {
 				dialog.dismiss();
 				if (e == null) {
 					loginSuccessful();
+					// Associate the device with a user
+					ParseInstallation installation = ParseInstallation
+							.getCurrentInstallation();
+					installation.put("user", user.getUsername());
+					installation.saveInBackground();
 				} else
 					loginUnSuccessful();
 			}

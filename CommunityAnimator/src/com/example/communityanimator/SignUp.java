@@ -1,7 +1,6 @@
 package com.example.communityanimator;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -28,6 +27,7 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.example.communityanimator.database.Categories;
 import com.example.communityanimator.util.Application;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -46,8 +46,6 @@ public class SignUp extends Activity implements
 
 	private static int RESULT_LOAD_IMAGE = 1;
 	private String selectedImagePath;
-	// ADDED
-	private String filemanagerstring;
 
 	CategoriesAdapter dataAdapter = null;
 	ParseUser user;
@@ -91,7 +89,6 @@ public class SignUp extends Activity implements
 			@Override
 			public void onClick(View v) {
 				// Open Gallery
-				Log.d("SignUP", "open gallery");
 				Intent intent = new Intent();
 				intent.setType("image/*");
 				intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -135,64 +132,25 @@ public class SignUp extends Activity implements
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
-		Log.d("SignUP", "onActivityResult");
 		if (resultCode == RESULT_OK) {
 			if (requestCode == RESULT_LOAD_IMAGE) {
 
 				Uri selectedImage = data.getData();
 
-				// OI FILE Manager
-				filemanagerstring = selectedImage.getPath();
 				// MEDIA GALLERY
 				selectedImagePath = getPath(selectedImage);
-
-				Bitmap bmp = null;
-				try {
-					bmp = decodeUri(selectedImage);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				profileImage.setImageBitmap(bmp);
+				Bitmap bm;
+				BitmapFactory.Options btmapOptions = new BitmapFactory.Options();
+				bm = BitmapFactory.decodeFile(selectedImagePath, btmapOptions);
+				profileImage.setImageBitmap(bm);
 
 				// Convert it to byte
 				ByteArrayOutputStream stream = new ByteArrayOutputStream();
 				// Compress image to lower quality scale 1 - 100
-				bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+				bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
 				image = stream.toByteArray();
 			}
 		}
-	}
-
-	private Bitmap decodeUri(Uri selectedImage) throws FileNotFoundException {
-
-		// Decode image size
-		BitmapFactory.Options o = new BitmapFactory.Options();
-		o.inJustDecodeBounds = true;
-		BitmapFactory.decodeStream(
-				getContentResolver().openInputStream(selectedImage), null, o);
-
-		// The new size we want to scale to
-		final int REQUIRED_SIZE = 140;
-
-		// Find the correct scale value. It should be the power of 2.
-		int width_tmp = o.outWidth, height_tmp = o.outHeight;
-		int scale = 1;
-		while (true) {
-			if (width_tmp / 2 < REQUIRED_SIZE || height_tmp / 2 < REQUIRED_SIZE) {
-				break;
-			}
-			width_tmp /= 2;
-			height_tmp /= 2;
-			scale *= 2;
-		}
-
-		// Decode with inSampleSize
-		BitmapFactory.Options o2 = new BitmapFactory.Options();
-		o2.inSampleSize = scale;
-		return BitmapFactory.decodeStream(
-				getContentResolver().openInputStream(selectedImage), null, o2);
-
 	}
 
 	public String getPath(Uri uri) {
@@ -321,6 +279,7 @@ public class SignUp extends Activity implements
 		// Verify if the user uploaded an image
 		if (image.length != 0) {
 			Log.d(Application.APPTAG, "entrou image not null!!");
+			user.put("image", "true");
 			// Create the ParseFile to upload image
 			ParseFile file = new ParseFile(user.getUsername() + ".png", image);
 			// Upload the image into Parse Cloud
@@ -335,6 +294,8 @@ public class SignUp extends Activity implements
 			imgupload.put("imageFile", file);
 			// Create the class and the columns
 			imgupload.saveInBackground();
+		} else {
+			user.put("image", "false");
 		}
 
 		// Call the Parse signup method

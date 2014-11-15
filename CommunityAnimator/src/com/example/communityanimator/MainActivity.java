@@ -1,5 +1,6 @@
 package com.example.communityanimator;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,9 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -20,6 +25,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,8 +37,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.communityanimator.database.User;
 import com.example.communityanimator.util.Application;
 import com.example.communityanimator.util.ErrorDialogFragment;
+import com.example.communityanimator.util.LocationHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -52,7 +61,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
+import com.parse.ParseInstallation;
+import com.parse.ParseObject;
+import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseQueryAdapter;
 import com.parse.ParseUser;
@@ -60,13 +73,11 @@ import com.parse.ParseUser;
 public class MainActivity extends Activity implements LocationListener,
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener {
-
 	/*
 	 * Define a request code to send to Google Play services This code is
 	 * returned in Activity.onActivityResult
 	 */
 	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-
 	/*
 	 * Constants for location update parameters
 	 */
@@ -90,12 +101,6 @@ public class MainActivity extends Activity implements LocationListener,
 	/*
 	 * Constants for handling location results
 	 */
-	// Initial offset for calculating the map bounds
-	private static final double OFFSET_CALCULATION_INIT_DIFF = 1.0;
-
-	// Accuracy for calculating the map bounds
-	private static final float OFFSET_CALCULATION_ACCURACY = 0.01f;
-
 	// Maximum results returned from a Parse query
 	private static final int MAX_SEARCH_RESULTS = 20;
 
@@ -120,6 +125,7 @@ public class MainActivity extends Activity implements LocationListener,
 	private String selectedObjectId;
 	private Location lastLocation;
 	private Location currentLocation;
+	ProgressDialog mProgressDialog;
 
 	// A request to connect to Location Services
 	private LocationRequest locationRequest;
@@ -134,8 +140,11 @@ public class MainActivity extends Activity implements LocationListener,
 	ListView list;
 	CustomListAdapter adapter;
 	List<ParseUser> contacts;
+	List<ParseObject> listImages;
+	private List<User> userData = null;
 	// Define which view, distance and status the app will show
-	Object view, status, distance;
+	boolean view, status;
+	Integer distance;
 	// Layouts
 	RelativeLayout menuView, mapView;
 	LinearLayout listView;
@@ -177,8 +186,8 @@ public class MainActivity extends Activity implements LocationListener,
 
 				ParseQuery<ParseUser> query = ParseUser.getQuery();
 				query.orderByAscending("username");
-				query.whereWithinMiles("location", geoPointFromLocation(myLoc),
-						radius);
+				query.whereWithinMiles("location",
+						LocationHelper.geoPointFromLocation(myLoc), radius);
 				query.whereNotEqualTo("username", ParseUser.getCurrentUser()
 						.getUsername());
 				query.whereContainedIn("interestList", ParseUser
@@ -280,7 +289,7 @@ public class MainActivity extends Activity implements LocationListener,
 
 				lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 				// true = ListView(default)
-				if (view.equals(true)) {
+				if (view) {
 					lv.setItemChecked(0, true);
 				} else {
 					lv.setItemChecked(1, true);
@@ -399,7 +408,7 @@ public class MainActivity extends Activity implements LocationListener,
 						MainActivity.this,
 						android.R.layout.simple_spinner_item, DistanceItems);
 				adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-				userInput.setSelection((Integer) distance); // TODO:fix it!
+				userInput.setSelection(distance); // TODO:fix it!
 				userInput.setAdapter(adapter);
 
 				final AlertDialog dialog = alertDialogDistance.create();
@@ -454,7 +463,6 @@ public class MainActivity extends Activity implements LocationListener,
 
 					@Override
 					public void onClick(View v) {
-
 						// Get name to locate
 						String name = locate.getText().toString();
 						if (name.matches("")) {
@@ -466,7 +474,8 @@ public class MainActivity extends Activity implements LocationListener,
 						// Locate user query
 						Location myLoc = (currentLocation == null) ? lastLocation
 								: currentLocation;
-						final ParseGeoPoint myPoint = geoPointFromLocation(myLoc);
+						final ParseGeoPoint myPoint = LocationHelper
+								.geoPointFromLocation(myLoc);
 						// Create the Parse query TODO:check query!
 						ParseQuery<ParseUser> locateQuery = ParseUser
 								.getQuery();
@@ -554,8 +563,10 @@ public class MainActivity extends Activity implements LocationListener,
 		userStatus = (TextView) findViewById(R.id.userStatus);
 		userDistance = (TextView) findViewById(R.id.userDistance);
 
-		view = ParseUser.getCurrentUser().get("view");
-		if (view.equals(true)) {
+		ParseUser user = ParseUser.getCurrentUser();
+
+		view = user.getBoolean("view");
+		if (view) {
 			listView.setVisibility(View.VISIBLE);
 			mapView.setVisibility(View.GONE);
 		} else {
@@ -564,8 +575,8 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 
 		// Check status chosen by user
-		status = ParseUser.getCurrentUser().get("status");
-		if (status.equals(true)) {
+		status = user.getBoolean("status");
+		if (status) {
 			userStatus.setText("animated");
 		} else {
 			userStatus.setText("busy");
@@ -578,8 +589,8 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 		Collections.sort(availableOptions);
 
-		distance = ParseUser.getCurrentUser().get("distance");
-		switch ((Integer) distance) {
+		distance = user.getInt("distance");
+		switch (distance) {
 		case 0:
 			userDistance.setText("50 feet away");
 			break;
@@ -649,15 +660,65 @@ public class MainActivity extends Activity implements LocationListener,
 		doListQuery();
 	}
 
-	private void initializeList(List<ParseUser> contacts) {
+	private void initializeList() {
 		Log.d(Application.APPTAG, "initializeList!");
-		// Set up the list fragment
 		list = (ListView) findViewById(R.id.list);
-		adapter = new CustomListAdapter(MainActivity.this, contacts);
+		list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		// Send a notification to chat
+		list.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+
+				TextView name = (TextView) view.findViewById(R.id.contactName);
+				pushNotification(name.getText().toString());
+			}
+		});
+		if (userData == null)
+			getUserImages(contacts);
+		adapter = new CustomListAdapter(MainActivity.this, userData);
 		list.setVisibility(View.VISIBLE);
 		list.setAdapter(adapter);
 		adapter.notifyDataSetChanged();
+	}
 
+	private void getUserImages(List<ParseUser> contacts) {
+		// Create the array
+		userData = new ArrayList<User>();
+
+		// Locate the class table named "ImageUpload" in Parse.com
+		ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(
+				"imageUpload");
+		try {
+			listImages = query.find();
+			for (int i = 0; i < contacts.size(); i++) {
+				if (contacts.get(i).getBoolean("image")) {
+
+					for (ParseObject user : listImages) {
+						if (contacts.get(i).getUsername()
+								.equals(user.getString("imageUser"))) {
+							ParseFile fileObject = user
+									.getParseFile("imageFile");
+							User us = new User();
+							us.setStatus(contacts.get(i).getBoolean("status"));
+							us.setPhotoFile(fileObject.getData());
+							us.setUsername(contacts.get(i)
+									.getString("username"));
+							userData.add(us);
+						}
+					}
+				} else {
+					User us = new User();
+					us.setStatus(contacts.get(i).getBoolean("status"));
+					us.setPhotoFile(null);
+					us.setUsername(contacts.get(i).getString("username"));
+					userData.add(us);
+				}
+			}
+		} catch (ParseException e1) {
+			e1.printStackTrace();
+		}
 	}
 
 	private void initializeMap() {
@@ -677,6 +738,42 @@ public class MainActivity extends Activity implements LocationListener,
 		});
 	}
 
+	private void pushNotification(String user) {
+		Log.d(Application.APPTAG, "pushNotification!");
+		ParseUser current = ParseUser.getCurrentUser();
+		JSONObject data = new JSONObject();
+		try {
+			data.put("sender", current.getUsername());
+			data.put("receiver", user);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// Find user by username
+		ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
+		userQuery.whereEqualTo("username", user);
+		userQuery.whereEqualTo("status", true);
+
+		// Find devices associated with these user
+		ParseQuery<ParseInstallation> pushQuery = ParseInstallation.getQuery();
+		pushQuery.whereMatchesQuery("user", userQuery);
+
+		// Create time interval
+		long weekInterval = 60 * 60 * 24 * 7; // 1 week
+
+		// Send push notification to query
+		ParsePush push = new ParsePush();
+		push.setExpirationTimeInterval(weekInterval);
+		push.setQuery(pushQuery); // Set our Installation query
+		push.setMessage("Hi! You received a friend request.");
+		push.setData(data);
+		push.sendInBackground();
+
+		Toast.makeText(getApplicationContext(), "Friend Request sent!",
+				Toast.LENGTH_LONG).show();
+	}
+
 	/*
 	 * Handle results returned to this Activity by other Activities started with
 	 * startActivityForResult(). In particular, the method onConnectionFailed()
@@ -691,10 +788,8 @@ public class MainActivity extends Activity implements LocationListener,
 		Log.d(Application.APPTAG, "onActivityResult!");
 		// Choose what to do based on the request code
 		switch (requestCode) {
-
 		// If the request code matches the code sent in onConnectionFailed
 		case CONNECTION_FAILURE_RESOLUTION_REQUEST:
-
 			switch (resultCode) {
 			// If Google Play services resolved the problem
 			case Activity.RESULT_OK:
@@ -705,7 +800,6 @@ public class MainActivity extends Activity implements LocationListener,
 							"Connected to Google Play services");
 				}
 				break;
-
 			// If any other result was returned by Google Play services
 			default:
 				if (Application.APPDEBUG) {
@@ -715,7 +809,6 @@ public class MainActivity extends Activity implements LocationListener,
 				}
 				break;
 			}
-
 			// If any other request code was received
 		default:
 			if (Application.APPDEBUG) {
@@ -825,8 +918,10 @@ public class MainActivity extends Activity implements LocationListener,
 		Log.d(Application.APPTAG, "onLocationChanged!");
 		currentLocation = location;
 		if (lastLocation != null
-				&& geoPointFromLocation(location).distanceInMilesTo(
-						geoPointFromLocation(lastLocation)) < 0.01) {
+				&& LocationHelper.geoPointFromLocation(location)
+						.distanceInMilesTo(
+								LocationHelper
+										.geoPointFromLocation(lastLocation)) < 0.01) {
 			// If the location hasn't changed by more than 10 meters, ignore it.
 			return;
 		}
@@ -892,7 +987,7 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 		// Saving user location
 		ParseUser user = ParseUser.getCurrentUser();
-		user.put("location", geoPointFromLocation(myLoc));
+		user.put("location", LocationHelper.geoPointFromLocation(myLoc));
 	}
 
 	/*
@@ -921,11 +1016,12 @@ public class MainActivity extends Activity implements LocationListener,
 				: currentLocation;
 		// If location info isn't available, clean up any existing markers
 		if (myLoc == null) {
-			cleanUpMarkers(new HashSet<String>());
+			LocationHelper.cleanUpMarkers(new HashSet<String>());
 			return;
 		}
 
-		final ParseGeoPoint myPoint = geoPointFromLocation(myLoc);
+		final ParseGeoPoint myPoint = LocationHelper
+				.geoPointFromLocation(myLoc);
 		// Create the map Parse query
 		ParseQuery<ParseUser> mapQuery = ParseUser.getQuery();
 		// Set up additional query filters
@@ -954,11 +1050,9 @@ public class MainActivity extends Activity implements LocationListener,
 					return;
 				}
 
-				// Load Contacts
+				// Load Contacts TODO:verify!
 				contacts = objects;
-				if (contacts != null) {
-					initializeList(contacts);
-				}
+				initializeList();
 
 				// Contacts to show on the map
 				Set<String> toKeep = new HashSet<String>();
@@ -1010,8 +1104,14 @@ public class MainActivity extends Activity implements LocationListener,
 							}
 						}
 						// Display a green marker with the contact information
+						String status;
+						if (user.getBoolean("status"))
+							status = "animated";
+						else
+							status = "busy";
 						markerOpts = markerOpts
 								.title(user.getUsername())
+								.snippet(status)
 								.icon(BitmapDescriptorFactory
 										.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 					}
@@ -1024,32 +1124,9 @@ public class MainActivity extends Activity implements LocationListener,
 					}
 				}
 				// Clean up old markers.
-				cleanUpMarkers(toKeep);
+				LocationHelper.cleanUpMarkers(toKeep);
 			}
 		});
-	}
-
-	/*
-	 * Helper method to clean up old markers
-	 */
-	private void cleanUpMarkers(Set<String> markersToKeep) {
-		Log.d(Application.APPTAG, "cleanUpMarkers!");
-		for (String objId : new HashSet<String>(mapMarkers.keySet())) {
-			if (!markersToKeep.contains(objId)) {
-				Marker marker = mapMarkers.get(objId);
-				marker.remove();
-				mapMarkers.get(objId).remove();
-				mapMarkers.remove(objId);
-			}
-		}
-	}
-
-	/*
-	 * Helper method to get the Parse GEO point representation of a location
-	 */
-	private ParseGeoPoint geoPointFromLocation(Location loc) {
-		Log.d(Application.APPTAG, "geoPointFromLocation!");
-		return new ParseGeoPoint(loc.getLatitude(), loc.getLongitude());
 	}
 
 	/*
@@ -1076,7 +1153,7 @@ public class MainActivity extends Activity implements LocationListener,
 	private void updateZoom(LatLng myLatLng) {
 		Log.d(Application.APPTAG, "updateZoom!");
 		// Get the bounds to zoom to
-		bounds = calculateBoundsWithCenter(myLatLng);
+		bounds = LocationHelper.calculateBoundsWithCenter(myLatLng);
 		mapFragment.setOnCameraChangeListener(new OnCameraChangeListener() {
 			@Override
 			public void onCameraChange(CameraPosition position) {
@@ -1085,88 +1162,6 @@ public class MainActivity extends Activity implements LocationListener,
 						bounds, 10));
 			}
 		});
-
-	}
-
-	/*
-	 * Helper method to calculate the offset for the bounds used in map zooming
-	 */
-	private double calculateLatLngOffset(LatLng myLatLng, boolean bLatOffset) {
-		Log.d(Application.APPTAG, "calculateLatLngOffset!");
-		// The return offset, initialized to the default difference
-		double latLngOffset = OFFSET_CALCULATION_INIT_DIFF;
-		// Set up the desired offset distance in meters
-		float desiredOffsetInMeters = radius;
-		// Variables for the distance calculation
-		float[] distance = new float[1];
-		boolean foundMax = false;
-		double foundMinDiff = 0;
-		// Loop through and get the offset
-		do {
-			// Calculate the distance between the point of interest
-			// and the current offset in the latitude or longitude direction
-			if (bLatOffset) {
-				Location.distanceBetween(myLatLng.latitude, myLatLng.longitude,
-						myLatLng.latitude + latLngOffset, myLatLng.longitude,
-						distance);
-			} else {
-				Location.distanceBetween(myLatLng.latitude, myLatLng.longitude,
-						myLatLng.latitude, myLatLng.longitude + latLngOffset,
-						distance);
-			}
-			// Compare the current difference with the desired one
-			float distanceDiff = distance[0] - desiredOffsetInMeters;
-			if (distanceDiff < 0) {
-				// Need to catch up to the desired distance
-				if (!foundMax) {
-					foundMinDiff = latLngOffset;
-					// Increase the calculated offset
-					latLngOffset *= 2;
-				} else {
-					double tmp = latLngOffset;
-					// Increase the calculated offset, at a slower pace
-					latLngOffset += (latLngOffset - foundMinDiff) / 2;
-					foundMinDiff = tmp;
-				}
-			} else {
-				// Overshot the desired distance
-				// Decrease the calculated offset
-				latLngOffset -= (latLngOffset - foundMinDiff) / 2;
-				foundMax = true;
-			}
-		} while (Math.abs(distance[0] - desiredOffsetInMeters) > OFFSET_CALCULATION_ACCURACY);
-		return latLngOffset;
-	}
-
-	/*
-	 * Helper method to calculate the bounds for map zooming
-	 */
-	LatLngBounds calculateBoundsWithCenter(LatLng myLatLng) {
-		Log.d(Application.APPTAG, "calculateBoundsWithCenter!");
-		// Create a bounds
-		LatLngBounds.Builder builder = LatLngBounds.builder();
-
-		// Calculate east/west points that should to be included
-		// in the bounds
-		double lngDifference = calculateLatLngOffset(myLatLng, false);
-		LatLng east = new LatLng(myLatLng.latitude, myLatLng.longitude
-				+ lngDifference);
-		builder.include(east);
-		LatLng west = new LatLng(myLatLng.latitude, myLatLng.longitude
-				- lngDifference);
-		builder.include(west);
-
-		// Calculate north/south points that should to be included
-		// in the bounds
-		double latDifference = calculateLatLngOffset(myLatLng, true);
-		LatLng north = new LatLng(myLatLng.latitude + latDifference,
-				myLatLng.longitude);
-		builder.include(north);
-		LatLng south = new LatLng(myLatLng.latitude - latDifference,
-				myLatLng.longitude);
-		builder.include(south);
-
-		return builder.build();
 	}
 
 	/*
@@ -1177,16 +1172,12 @@ public class MainActivity extends Activity implements LocationListener,
 		// Get the error dialog from Google Play services
 		Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(errorCode,
 				this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
-
 		// If Google Play services can provide an error dialog
 		if (errorDialog != null) {
-
 			// Create a new DialogFragment in which to show the error dialog
 			ErrorDialogFragment errorFragment = new ErrorDialogFragment();
-
 			// Set the dialog in the DialogFragment
 			errorFragment.setDialog(errorDialog);
-
 			// Show the error dialog in the DialogFragment
 			errorFragment.show(getFragmentManager(), Application.APPTAG);
 		}

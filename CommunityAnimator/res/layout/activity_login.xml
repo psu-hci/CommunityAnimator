@@ -57,7 +57,7 @@
             android:layout_below="@id/txtpassword"
             android:background="@drawable/edittext_round_corners"
             android:imeActionId="@+id/login"
-            android:imeActionLabel="@string/action_sign_in_short"
+            android:imeActionLabel="@string/signIn"
             android:imeOptions="actionUnspecified"
             android:inputType="textPassword"
             android:maxLines="1"
@@ -74,7 +74,8 @@
                 android:id="@+id/remembercheck"
                 style="@style/CheckBoxAppTheme"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:checked="true" />
 
             <TextView
                 android:id="@+id/txtremember"
@@ -107,7 +108,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="8dp"
-        android:text="@string/action_sign_in_short"
+        android:text="@string/signIn"
         android:textAppearance="?android:attr/textAppearance" />
 
     <View

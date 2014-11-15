@@ -17,7 +17,6 @@
 <resources>
 
     <string name="app_name">Community Animator</string>
-    <string name="action_settings">Settings</string>
     <string name="action_websearch">Search</string>
     <string name="facebook_app_id">991607557523053</string>
     <string name="maps_app_key">AIzaSyD9wpmCtUti0W64UlpKmAmQMmiYSHYSPC4</string>
@@ -49,8 +48,6 @@
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
-    <string name="action_sign_in_register"><b>Sign in</b> or register</string>
-    <string name="action_sign_in_short">Sign in</string>
     <string name="action_register">Create Account</string>
     <string name="menu_forgot_password">Recover lost password</string>
     <string name="login_progress_signing_in">Signing in</string>
@@ -66,7 +63,8 @@
     <string name="logn_generic_error">Something went wrong. Please retry.</string>
 
     <!-- Strings related forget password -->
-    <string name="askEmail">Enter Your Email Address</string>
+    <string name="askEmail">Enter Your Email Address:</string>
+    <string name="emailHint">(Use the same registered email)</string>
 
     <!-- Strings related to menu -->
     <string name="profile">Profile</string>
@@ -86,6 +84,8 @@
     <!-- Strings related status dialog -->
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="accept">Accept</string>
+    <string name="refuse">Refuse</string>
 
     <!-- Strings related locate dialog -->
     <string name="locateUser">Type your friend´s name:</string>
@@ -93,7 +93,6 @@
     <string name="post_out_of_range">Can\'t view contact! Get closer.</string>
 
     <!-- Strings related to user profile -->
-
     <string name="upload_image">Upload Image</string>
     <string name="userName"> Name</string>
     <string name="DOB"> Date of Birth</string>
@@ -103,6 +102,9 @@
     <string name="Female">Female</string>
     <string name="SaveAccount">Save Account</string>
     <string name="progress_signUp">Signing up...</string>
+    
+    <!-- Strings related Messaging -->
+    <string name="message_elipses">Message...</string>
 
     <!-- Strings from Settings Summary -->
     <string name="wifi_only">On/Off</string>

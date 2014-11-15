@@ -2,6 +2,8 @@ package com.example.communityanimator;
 
 import java.util.ArrayList;
 
+import com.example.communityanimator.database.Categories;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;

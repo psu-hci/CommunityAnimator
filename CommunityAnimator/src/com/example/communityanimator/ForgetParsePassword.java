@@ -1,6 +1,7 @@
 package com.example.communityanimator;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -30,8 +31,6 @@ public class ForgetParsePassword extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
-
 				password = et_forgetpassword.getText().toString();
 				checkEmailID();
 
@@ -41,7 +40,6 @@ public class ForgetParsePassword extends Activity {
 	}
 
 	protected void checkEmailID() {
-		// TODO Auto-generated method stub
 		if (TextUtils.isEmpty(password)) {
 			et_forgetpassword
 					.setError(getString(R.string.error_field_required));
@@ -52,31 +50,30 @@ public class ForgetParsePassword extends Activity {
 	}
 
 	public void forgotPassword(String email) {
-		// postEvent(new UserForgotPasswordStartEvent());
+
 		ParseUser.requestPasswordResetInBackground(email,
-				new UserForgotPasswordCallback());
+				new RequestPasswordResetCallback() {
+
+					@Override
+					public void done(ParseException e) {
+						if (e == null) {
+							// success!
+							Toast.makeText(
+									getApplicationContext(),
+									"Successfully sent link to your email for reset Password",
+									Toast.LENGTH_LONG).show();
+
+							Intent intent = new Intent(
+									ForgetParsePassword.this, Login.class);
+							startActivity(intent);
+						} else {
+							Toast.makeText(
+									getApplicationContext(),
+									"Failed to sent link to your email for reset Password: "
+											+ e.getMessage(), Toast.LENGTH_LONG)
+									.show();
+						}
+					}
+				});
 	}
-
-	private class UserForgotPasswordCallback extends
-			RequestPasswordResetCallback {
-		public UserForgotPasswordCallback() {
-			super();
-		}
-
-		@Override
-		public void done(ParseException e) {
-			if (e == null) {
-				Toast.makeText(
-						getApplicationContext(),
-						"Successfully sent link to your email for reset Password",
-						Toast.LENGTH_LONG).show();
-			} else {
-				Toast.makeText(getApplicationContext(),
-						"Failed to sent link to your email for reset Password",
-						Toast.LENGTH_LONG).show();
-
-			}
-		}
-	}
-
 }
