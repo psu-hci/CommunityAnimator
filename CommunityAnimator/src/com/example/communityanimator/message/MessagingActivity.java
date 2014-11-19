@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.communityanimator.MainActivity;
 import com.example.communityanimator.R;
 import com.example.communityanimator.util.Application;
 import com.parse.FindCallback;
@@ -54,7 +55,7 @@ public class MessagingActivity extends Activity {
 		currentUserId = ParseUser.getCurrentUser().getObjectId();
 
 		messagesList = (ListView) findViewById(R.id.listMessages);
-		messageAdapter = new MessageAdapter(this);
+		messageAdapter = new MessageAdapter(this, recipientId);
 		messagesList.setAdapter(messageAdapter);
 		populateMessageHistory();
 
@@ -102,15 +103,12 @@ public class MessagingActivity extends Activity {
 
 	private void sendMessage() {
 		messageBody = messageBodyField.getText().toString();
-		Log.d(Application.APPTAG, "messageBody: " + messageBody);
 		if (messageBody.isEmpty()) {
 			Toast.makeText(this, "Please enter a message", Toast.LENGTH_LONG)
 					.show();
 			return;
 		}
 
-		Log.d(Application.APPTAG, "recipientId: " + recipientId);
-		Log.d(Application.APPTAG, "messageBody: " + messageBody);
 		messageService.isSinchClientStarted();
 		messageService.sendMessage(recipientId, messageBody);
 		messageBodyField.setText("");
@@ -212,6 +210,13 @@ public class MessagingActivity extends Activity {
 			Log.d(Application.APPTAG, "msg: " + msg.toString());
 
 		}
+	}
+
+	@Override
+	public void onBackPressed() {
+		Intent i = new Intent(getApplicationContext(), MainActivity.class);
+		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(i);
 	}
 
 }

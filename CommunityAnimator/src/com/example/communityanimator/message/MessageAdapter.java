@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +16,11 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.example.communityanimator.R;
+import com.example.communityanimator.util.Application;
+import com.parse.GetCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 import com.sinch.android.rtc.messaging.WritableMessage;
 
 public class MessageAdapter extends BaseAdapter {
@@ -23,10 +30,14 @@ public class MessageAdapter extends BaseAdapter {
 
 	private List<Pair<WritableMessage, Integer>> messages;
 	private LayoutInflater layoutInflater;
+	private String currentUsername = ParseUser.getCurrentUser().getUsername();
+	private String recipientName, recipientId;
 
-	public MessageAdapter(Activity activity) {
+	public MessageAdapter(Activity activity, String recipientID) {
 		layoutInflater = activity.getLayoutInflater();
 		messages = new ArrayList<Pair<WritableMessage, Integer>>();
+		this.recipientId = recipientID;
+		findWriterName(recipientId);
 	}
 
 	public void addMessage(WritableMessage message, int direction) {
@@ -59,6 +70,7 @@ public class MessageAdapter extends BaseAdapter {
 		return messages.get(i).second;
 	}
 
+	@SuppressLint("SimpleDateFormat")
 	@Override
 	public View getView(int i, View convertView, ViewGroup viewGroup) {
 		int direction = getItemViewType(i);
@@ -86,6 +98,32 @@ public class MessageAdapter extends BaseAdapter {
 		TextView txtDate = (TextView) convertView.findViewById(R.id.txtDate);
 		txtDate.setText(currentDateandTime);
 
+		TextView txtSender = (TextView) convertView
+				.findViewById(R.id.txtSender);
+		if (direction == DIRECTION_INCOMING) {
+			txtSender.setText(recipientName);
+		} else if (direction == DIRECTION_OUTGOING) {
+			txtSender.setText(currentUsername);
+		}
+
 		return convertView;
+	}
+
+	private void findWriterName(String writerId) {
+		ParseQuery<ParseUser> query = ParseUser.getQuery();
+		query.whereEqualTo("objectId", writerId);
+		query.getFirstInBackground(new GetCallback<ParseUser>() {
+
+			@Override
+			public void done(ParseUser user, ParseException e) {
+				if (e == null) {
+					recipientName = user.getUsername();
+				} else {
+					Log.d(Application.APPTAG,
+							"An error occurred while querying.", e);
+				}
+
+			}
+		});
 	}
 }

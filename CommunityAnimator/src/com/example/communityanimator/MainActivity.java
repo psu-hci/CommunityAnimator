@@ -24,7 +24,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -33,7 +32,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +49,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -80,32 +79,20 @@ public class MainActivity extends Activity implements LocationListener,
 	 * returned in Activity.onActivityResult
 	 */
 	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-	/*
-	 * Constants for location update parameters
-	 */
 	// Milliseconds per second
 	private static final int MILLISECONDS_PER_SECOND = 1000;
-
 	// The update interval
 	private static final int UPDATE_INTERVAL_IN_SECONDS = 5;
-
 	// A fast interval ceiling
 	private static final int FAST_CEILING_IN_SECONDS = 1;
-
 	// Update interval in milliseconds
 	private static final long UPDATE_INTERVAL_IN_MILLISECONDS = MILLISECONDS_PER_SECOND
 			* UPDATE_INTERVAL_IN_SECONDS;
-
 	// A fast ceiling of update intervals, used when the app is visible
 	private static final long FAST_INTERVAL_CEILING_IN_MILLISECONDS = MILLISECONDS_PER_SECOND
 			* FAST_CEILING_IN_SECONDS;
-
-	/*
-	 * Constants for handling location results
-	 */
 	// Maximum results returned from a Parse query
 	private static final int MAX_SEARCH_RESULTS = 20;
-
 	// Maximum search radius for map in kilometers
 	private static final int MAX_SEARCH_DISTANCE = 100;
 
@@ -131,12 +118,12 @@ public class MainActivity extends Activity implements LocationListener,
 
 	// A request to connect to Location Services
 	private LocationRequest locationRequest;
-
 	// Stores the current instantiation of the location client in this object
 	private LocationClient locationClient;
-
 	// Adapter for the Parse query
 	private ParseQueryAdapter<ParseUser> userQueryAdapter;
+
+	private ParseUser mUser = ParseUser.getCurrentUser();
 
 	// ListView
 	ListView list;
@@ -178,57 +165,6 @@ public class MainActivity extends Activity implements LocationListener,
 		// Create a new location client, using the enclosing class to handle
 		// callbacks.
 		locationClient = new LocationClient(this, this, this);
-
-		// Set up a customized query
-		ParseQueryAdapter.QueryFactory<ParseUser> factory = new ParseQueryAdapter.QueryFactory<ParseUser>() {
-			@Override
-			public ParseQuery<ParseUser> create() {
-				Location myLoc = (currentLocation == null) ? lastLocation
-						: currentLocation;
-
-				ParseQuery<ParseUser> query = ParseUser.getQuery();
-				query.orderByAscending("username");
-				query.whereWithinMiles("location",
-						LocationHelper.geoPointFromLocation(myLoc), radius);
-				query.whereNotEqualTo("username", ParseUser.getCurrentUser()
-						.getUsername());
-				query.whereContainedIn("interestList", ParseUser
-						.getCurrentUser().getList("interestList"));
-				query.setLimit(MAX_SEARCH_RESULTS);
-				return query;
-			}
-		};
-
-		// Set up the query adapter
-		userQueryAdapter = new ParseQueryAdapter<ParseUser>(this, factory) {
-			@Override
-			public View getItemView(ParseUser user, View view, ViewGroup parent) {
-				if (view == null) {
-					view = View.inflate(getContext(), R.layout.map_item, null);
-				}
-				TextView contentView = (TextView) view
-						.findViewById(R.id.content_view);
-				TextView usernameView = (TextView) view
-						.findViewById(R.id.username_view);
-
-				Object status = user.getBoolean("status");
-				Log.d(Application.APPTAG, "status: " + status);
-				if (status.equals(true)) {
-					contentView.setText("animated");
-				} else {
-					contentView.setText("busy");
-				}
-
-				usernameView.setText(user.getUsername());
-				return view;
-			}
-		};
-
-		// Disable automatic loading when the adapter is attached to a view.
-		userQueryAdapter.setAutoload(false);
-
-		// Disable pagination, we'll manage the query limit ourselves
-		userQueryAdapter.setPaginationEnabled(false);
 
 		// load user last definitions from menuoptions
 		loadUserMenu();
@@ -277,7 +213,7 @@ public class MainActivity extends Activity implements LocationListener,
 				AlertDialog.Builder alertDialog = new AlertDialog.Builder(
 						MainActivity.this);
 				LayoutInflater inflater = getLayoutInflater();
-				View convertView = inflater.inflate(R.layout.view_dialog, null);
+				View convertView = inflater.inflate(R.layout.option_dialog, null);
 				alertDialog.setView(convertView);
 				alertDialog.setTitle("View");
 				final ListView lv = (ListView) convertView
@@ -324,9 +260,8 @@ public class MainActivity extends Activity implements LocationListener,
 						}
 
 						// Saving chosen view
-						ParseUser user = ParseUser.getCurrentUser();
-						user.put("view", view);
-						user.saveInBackground();
+						mUser.put("view", view);
+						mUser.saveInBackground();
 						dialog.dismiss();
 					}
 				});
@@ -343,41 +278,50 @@ public class MainActivity extends Activity implements LocationListener,
 				AlertDialog.Builder alertDialogStatus = new AlertDialog.Builder(
 						MainActivity.this);
 				LayoutInflater inflater = getLayoutInflater();
-				View statusView = inflater
-						.inflate(R.layout.status_dialog, null);
+				View statusView = inflater.inflate(R.layout.option_dialog, null);
 
 				alertDialogStatus.setView(statusView);
 				alertDialogStatus.setTitle("Status");
 
-				final Spinner userInput = (Spinner) statusView
-						.findViewById(R.id.dialog_spinner);
+				final ListView lv = (ListView) statusView
+						.findViewById(R.id.listView1);
 
 				ArrayAdapter<String> adapter = new ArrayAdapter<String>(
 						MainActivity.this,
-						android.R.layout.simple_spinner_item, StatusItems);
-				adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-				userInput.setAdapter(adapter);
+						android.R.layout.simple_list_item_single_choice,
+						StatusItems);
+				lv.setAdapter(adapter);
+
+				lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+				// true = animated(default)
+				if (status) {
+					lv.setItemChecked(0, true);
+				} else {
+					lv.setItemChecked(1, true);
+				}
 
 				final AlertDialog dialog = alertDialogStatus.create();
 				dialog.show();
 
 				Button statusOk = (Button) statusView
-						.findViewById(R.id.statusOkBtn);
+						.findViewById(R.id.listviewBtn);
 				statusOk.setOnClickListener(new View.OnClickListener() {
 
 					@Override
 					public void onClick(View v) {
 
-						String Text = userInput.getSelectedItem().toString();
-						userStatus.setText(Text);
+						Object checkedItem = lv.getAdapter().getItem(
+								lv.getCheckedItemPosition());
+						userStatus.setText(checkedItem.toString());
 
-						boolean flag = true;
-						if (Text == "busy")
-							flag = false;
+						if (checkedItem.toString().equals("busy")) {
+							status = false;
+						} else {
+							status = true;
+						}
 						// Save status on database
-						ParseUser user = ParseUser.getCurrentUser();
-						user.put("status", flag);
-						user.saveInBackground();
+						mUser.put("status", status);
+						mUser.saveInBackground();
 						dialog.dismiss();
 					}
 				});
@@ -397,42 +341,61 @@ public class MainActivity extends Activity implements LocationListener,
 				AlertDialog.Builder alertDialogDistance = new AlertDialog.Builder(
 						MainActivity.this);
 				LayoutInflater inflater = getLayoutInflater();
-				View distanceView = inflater.inflate(R.layout.distance_dialog,
-						null);
+				View distanceView = inflater
+						.inflate(R.layout.option_dialog, null);
 
 				alertDialogDistance.setView(distanceView);
 				alertDialogDistance.setTitle("Distance");
 
-				final Spinner userInput = (Spinner) distanceView
-						.findViewById(R.id.distance_spinner);
+				final ListView lv = (ListView) distanceView
+						.findViewById(R.id.listView1);
 
 				ArrayAdapter<String> adapter = new ArrayAdapter<String>(
 						MainActivity.this,
-						android.R.layout.simple_spinner_item, DistanceItems);
-				adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-				userInput.setSelection(distance); // TODO:fix it!
-				userInput.setAdapter(adapter);
+						android.R.layout.simple_list_item_single_choice,
+						DistanceItems);
+				lv.setAdapter(adapter);
+
+				lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+				switch (distance) {
+				case 0:
+					lv.setItemChecked(0, true);
+					break;
+				case 1:
+					lv.setItemChecked(1, true);
+					break;
+				case 2:
+					lv.setItemChecked(2, true);
+					break;
+				case 3:
+					lv.setItemChecked(3, true);
+					break;
+				default:
+					break;
+				}
 
 				final AlertDialog dialog = alertDialogDistance.create();
 				dialog.show();
 
 				Button distanceOk = (Button) distanceView
-						.findViewById(R.id.distanceOkBtn);
+						.findViewById(R.id.listviewBtn);
 				distanceOk.setOnClickListener(new View.OnClickListener() {
 
 					@Override
 					public void onClick(View v) {
 
-						String Text = userInput.getSelectedItem().toString();
-						userDistance.setText(Text);
+						Object checkedItem = lv.getAdapter().getItem(
+								lv.getCheckedItemPosition());
+						userDistance.setText(checkedItem.toString());
 
-						Application.setSearchDistance(availableOptions
-								.get(userInput.getSelectedItemPosition()));
+						Application.setSearchDistance(availableOptions.get(lv
+								.getCheckedItemPosition()));
+
+						distance = lv.getCheckedItemPosition();
 						// Save distance on database
-						ParseUser user = ParseUser.getCurrentUser();
-						user.put("distance",
-								userInput.getSelectedItemPosition());
-						user.saveInBackground();
+						mUser.put("distance", lv.getCheckedItemPosition());
+						mUser.saveInBackground();
 						dialog.dismiss();
 					}
 				});
@@ -557,67 +520,12 @@ public class MainActivity extends Activity implements LocationListener,
 		});
 	}
 
-	private void loadUserMenu() {
-		// Check view chosen by user
-		menuView = (RelativeLayout) findViewById(R.id.menuView);
-		mapView = (RelativeLayout) findViewById(R.id.mapLayout);
-		listView = (LinearLayout) findViewById(R.id.listLayout);
-		userStatus = (TextView) findViewById(R.id.userStatus);
-		userDistance = (TextView) findViewById(R.id.userDistance);
-
-		ParseUser user = ParseUser.getCurrentUser();
-
-		view = user.getBoolean("view");
-		if (view) {
-			listView.setVisibility(View.VISIBLE);
-			mapView.setVisibility(View.GONE);
-		} else {
-			listView.setVisibility(View.GONE);
-			mapView.setVisibility(View.VISIBLE);
-		}
-
-		// Check status chosen by user
-		status = user.getBoolean("status");
-		if (status) {
-			userStatus.setText("animated");
-		} else {
-			userStatus.setText("busy");
-		}
-
-		// Check distance chosen by user
-		float currentSearchDistance = Application.getSearchDistance();
-		if (!availableOptions.contains(currentSearchDistance)) {
-			availableOptions.add(currentSearchDistance);
-		}
-		Collections.sort(availableOptions);
-
-		distance = user.getInt("distance");
-		switch (distance) {
-		case 0:
-			userDistance.setText("50 feet away");
-			break;
-		case 1:
-			userDistance.setText("100 feet away");
-			break;
-		case 2:
-			userDistance.setText("250 feet away");
-			break;
-		case 3:
-			userDistance.setText("500 feet away");
-			break;
-		default:
-			break;
-		}
-	}
-
 	@Override
 	protected void onStop() {
-		Log.d(Application.APPTAG, "onStop!");
 		// If the client is connected
 		if (locationClient.isConnected()) {
 			stopPeriodicUpdates();
 		}
-
 		// After disconnect() is called, the client is considered "dead".
 		locationClient.disconnect();
 
@@ -626,7 +534,6 @@ public class MainActivity extends Activity implements LocationListener,
 
 	@Override
 	protected void onStart() {
-		Log.d(Application.APPTAG, "onStart!");
 		super.onStart();
 
 		// Connect to the location services client
@@ -635,7 +542,6 @@ public class MainActivity extends Activity implements LocationListener,
 
 	@Override
 	protected void onResume() {
-		Log.d(Application.APPTAG, "onResume!");
 		super.onResume();
 
 		Application.getConfigHelper().fetchConfigIfNeeded();
@@ -659,7 +565,177 @@ public class MainActivity extends Activity implements LocationListener,
 		lastRadius = radius;
 		// Query for the latest data to update the views.
 		doMapQuery();
-		doListQuery();
+	}
+
+	/*
+	 * Called by Location Services when the request to connect the client
+	 * finishes successfully. At this point, you can request the current
+	 * location or start periodic updates
+	 */
+	@Override
+	public void onConnected(Bundle bundle) {
+		if (Application.APPDEBUG) {
+			Log.d("Connected to location services", Application.APPTAG);
+		}
+		currentLocation = getLocation();
+		startPeriodicUpdates();
+	}
+
+	/*
+	 * Called by Location Services if the connection to the location client
+	 * drops because of an error.
+	 */
+	@Override
+	public void onDisconnected() {
+		if (Application.APPDEBUG) {
+			Log.d("Disconnected from location services", Application.APPTAG);
+		}
+	}
+
+	/*
+	 * Called by Location Services if the attempt to Location Services fails.
+	 */
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {
+		if (connectionResult.hasResolution()) {
+			try {
+
+				// Start an Activity that tries to resolve the error
+				connectionResult.startResolutionForResult(this,
+						CONNECTION_FAILURE_RESOLUTION_REQUEST);
+			} catch (IntentSender.SendIntentException e) {
+
+				if (Application.APPDEBUG) {
+					// Thrown if Google Play services canceled the original
+					// PendingIntent
+					Log.d(Application.APPTAG,
+							"An error occurred when connecting to location services.",
+							e);
+				}
+			}
+		} else {
+			// If no resolution is available, display a dialog to the user with
+			// the error.
+			showErrorDialog(connectionResult.getErrorCode());
+		}
+	}
+
+	/*
+	 * Report location updates to the UI.
+	 */
+	@Override
+	public void onLocationChanged(Location location) {
+		Log.d(Application.APPTAG, "onLocationChanged!");
+		currentLocation = location;
+		if (lastLocation != null
+				&& LocationHelper.geoPointFromLocation(location)
+						.distanceInMilesTo(
+								LocationHelper
+										.geoPointFromLocation(lastLocation)) < 0.007) {
+			return;
+		}
+		lastLocation = location;
+		LatLng myLatLng = new LatLng(location.getLatitude(),
+				location.getLongitude());
+		if (!hasSetUpInitialLocation) {
+			// Zoom to the current location.
+			updateZoom(myLatLng);
+			hasSetUpInitialLocation = true;
+		}
+		// Saving new user location
+		saveUserLocation(location);
+
+		// Update map radius indicator
+		updateCircle(myLatLng);
+		doMapQuery();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode,
+			Intent intent) {
+		// Choose what to do based on the request code
+		switch (requestCode) {
+		// If the request code matches the code sent in onConnectionFailed
+		case CONNECTION_FAILURE_RESOLUTION_REQUEST:
+			switch (resultCode) {
+			// If Google Play services resolved the problem
+			case Activity.RESULT_OK:
+
+				if (Application.APPDEBUG) {
+					// Log the result
+					Log.d(Application.APPTAG,
+							"Connected to Google Play services");
+				}
+				break;
+			// If any other result was returned by Google Play services
+			default:
+				if (Application.APPDEBUG) {
+					// Log the result
+					Log.d(Application.APPTAG,
+							"Could not connect to Google Play services");
+				}
+				break;
+			}
+			// If any other request code was received
+		default:
+			if (Application.APPDEBUG) {
+				// Report that this Activity received an unknown requestCode
+				Log.d(Application.APPTAG,
+						"Unknown request code received for the activity");
+			}
+			break;
+		}
+	}
+
+	private void loadUserMenu() {
+		// Check view chosen by user
+		menuView = (RelativeLayout) findViewById(R.id.menuView);
+		mapView = (RelativeLayout) findViewById(R.id.mapLayout);
+		listView = (LinearLayout) findViewById(R.id.listLayout);
+		userStatus = (TextView) findViewById(R.id.userStatus);
+		userDistance = (TextView) findViewById(R.id.userDistance);
+
+		view = mUser.getBoolean("view");
+		if (view) {
+			listView.setVisibility(View.VISIBLE);
+			mapView.setVisibility(View.GONE);
+		} else {
+			listView.setVisibility(View.GONE);
+			mapView.setVisibility(View.VISIBLE);
+		}
+
+		// Check status chosen by user
+		status = mUser.getBoolean("status");
+		if (status) {
+			userStatus.setText("animated");
+		} else {
+			userStatus.setText("busy");
+		}
+
+		// Check distance chosen by user
+		float currentSearchDistance = Application.getSearchDistance();
+		if (!availableOptions.contains(currentSearchDistance)) {
+			availableOptions.add(currentSearchDistance);
+		}
+		Collections.sort(availableOptions);
+
+		distance = mUser.getInt("distance");
+		switch (distance) {
+		case 0:
+			userDistance.setText("50 feet away");
+			break;
+		case 1:
+			userDistance.setText("100 feet away");
+			break;
+		case 2:
+			userDistance.setText("250 feet away");
+			break;
+		case 3:
+			userDistance.setText("500 feet away");
+			break;
+		default:
+			break;
+		}
 	}
 
 	private void initializeList() {
@@ -676,37 +752,44 @@ public class MainActivity extends Activity implements LocationListener,
 
 				Log.d(Application.APPTAG, "onItemCLick!");
 				TextView name = (TextView) view.findViewById(R.id.contactName);
-
-				ParseQuery<ParseUser> query = ParseUser.getQuery();
-				query.whereEqualTo("username", name.getText().toString());
-				query.getFirstInBackground(new GetCallback<ParseUser>() {
-
-					@Override
-					public void done(ParseUser user, ParseException e) {
-
-						if (e == null) {
-							boolean chat = user.getBoolean("chatting");
-							if (chat) {
-								Log.d(Application.APPTAG, "chat true onclick!");
-								callMessaging(user.getObjectId());
-							} else {
-								pushNotification(user.getUsername());
-							}
-						} else {
-							Log.d(Application.APPTAG,
-									"An error occurred while querying.", e);
-						}
-					}
-				});
-
+				verifyAddorChat(name.getText().toString());
 			}
 		});
+
 		if (userData == null)
 			getUserImages(contacts);
+
 		adapter = new CustomListAdapter(MainActivity.this, userData);
 		list.setVisibility(View.VISIBLE);
 		list.setAdapter(adapter);
 		adapter.notifyDataSetChanged();
+	}
+
+	private void initializeMap() {
+		Log.d(Application.APPTAG, "initializeMap!");
+		// Set up the map fragment
+		mapFragment = ((MapFragment) getFragmentManager().findFragmentById(
+				R.id.map)).getMap();
+		// Enable the current location "blue dot"
+		mapFragment.setMyLocationEnabled(true);
+		mapFragment
+				.setOnInfoWindowClickListener(new OnInfoWindowClickListener() {
+
+					@Override
+					public void onInfoWindowClick(Marker marker) {
+						Log.d(Application.APPTAG, "onMarkerCLick!");
+						verifyAddorChat(marker.getTitle());
+					}
+				});
+
+		// Set up the camera change handler
+		mapFragment.setOnCameraChangeListener(new OnCameraChangeListener() {
+			@Override
+			public void onCameraChange(CameraPosition position) {
+				// When the camera changes, update the query
+				doMapQuery();
+			}
+		});
 	}
 
 	private void getUserImages(List<ParseUser> contacts) {
@@ -750,29 +833,46 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 	}
 
-	private void callMessaging(String objectId) {
-		// TODO:create query to verify if they have conversation between each
-		// other
-		Intent intent = new Intent(getApplicationContext(),
-				MessagingActivity.class);
-		intent.putExtra("RECIPIENT_ID", objectId);
-		startActivity(intent);
+	private void verifyAddorChat(String recipientName) {
 
+		ParseQuery<ParseUser> query = ParseUser.getQuery();
+		query.whereEqualTo("username", recipientName);
+		query.getFirstInBackground(new GetCallback<ParseUser>() {
+
+			@Override
+			public void done(ParseUser user, ParseException e) {
+
+				if (e == null) {
+					boolean chat = user.getBoolean("chatting");
+					if (chat) {
+						callMessaging(mUser.getObjectId(), user.getObjectId());
+					} else {
+						pushNotification(user.getUsername());
+					}
+				} else {
+					Log.d(Application.APPTAG,
+							"An error occurred while querying.", e);
+				}
+			}
+		});
 	}
 
-	private void initializeMap() {
-		Log.d(Application.APPTAG, "initializeMap!");
-		// Set up the map fragment
-		mapFragment = ((MapFragment) getFragmentManager().findFragmentById(
-				R.id.map)).getMap();
-		// Enable the current location "blue dot"
-		mapFragment.setMyLocationEnabled(true);
-		// Set up the camera change handler
-		mapFragment.setOnCameraChangeListener(new OnCameraChangeListener() {
+	private void callMessaging(String currentUserId, final String recipientId) {
+
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("ParseMessage");
+		query.whereEqualTo("senderId", currentUserId);
+		query.whereEqualTo("recipientId", recipientId);
+		query.getFirstInBackground(new GetCallback<ParseObject>() {
+
 			@Override
-			public void onCameraChange(CameraPosition position) {
-				// When the camera changes, update the query
-				doMapQuery();
+			public void done(ParseObject object, ParseException e) {
+
+				if (e == null) {
+					Intent intent = new Intent(getApplicationContext(),
+							MessagingActivity.class);
+					intent.putExtra("RECIPIENT_ID", recipientId);
+					startActivity(intent);
+				}
 			}
 		});
 	}
@@ -793,7 +893,6 @@ public class MainActivity extends Activity implements LocationListener,
 					if (status) {
 
 						JSONObject obj;
-						ParseUser current = ParseUser.getCurrentUser();
 
 						try {
 							obj = new JSONObject();
@@ -801,7 +900,7 @@ public class MainActivity extends Activity implements LocationListener,
 									"Hi! You receive a friend request.");
 							obj.put("action",
 									"com.example.communityanimator.UPDATE_STATUS");
-							obj.put("customdata", current.getUsername() + "/"
+							obj.put("customdata", mUser.getUsername() + "/"
 									+ user.getUsername());
 
 							ParsePush push = new ParsePush();
@@ -832,52 +931,6 @@ public class MainActivity extends Activity implements LocationListener,
 				}
 			}
 		});
-	}
-
-	/*
-	 * Handle results returned to this Activity by other Activities started with
-	 * startActivityForResult(). In particular, the method onConnectionFailed()
-	 * in LocationUpdateRemover and LocationUpdateRequester may call
-	 * startResolutionForResult() to start an Activity that handles Google Play
-	 * services problems. The result of this call returns here, to
-	 * onActivityResult.
-	 */
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode,
-			Intent intent) {
-		Log.d(Application.APPTAG, "onActivityResult!");
-		// Choose what to do based on the request code
-		switch (requestCode) {
-		// If the request code matches the code sent in onConnectionFailed
-		case CONNECTION_FAILURE_RESOLUTION_REQUEST:
-			switch (resultCode) {
-			// If Google Play services resolved the problem
-			case Activity.RESULT_OK:
-
-				if (Application.APPDEBUG) {
-					// Log the result
-					Log.d(Application.APPTAG,
-							"Connected to Google Play services");
-				}
-				break;
-			// If any other result was returned by Google Play services
-			default:
-				if (Application.APPDEBUG) {
-					// Log the result
-					Log.d(Application.APPTAG,
-							"Could not connect to Google Play services");
-				}
-				break;
-			}
-			// If any other request code was received
-		default:
-			if (Application.APPDEBUG) {
-				// Report that this Activity received an unknown requestCode
-				Log.d(Application.APPTAG,
-						"Unknown request code received for the activity");
-			}
-			break;
-		}
 	}
 
 	/*
@@ -914,101 +967,10 @@ public class MainActivity extends Activity implements LocationListener,
 	}
 
 	/*
-	 * Called by Location Services when the request to connect the client
-	 * finishes successfully. At this point, you can request the current
-	 * location or start periodic updates
-	 */
-	@Override
-	public void onConnected(Bundle bundle) {
-		Log.d(Application.APPTAG, "onConnected!");
-		if (Application.APPDEBUG) {
-			Log.d("Connected to location services", Application.APPTAG);
-		}
-		currentLocation = getLocation();
-		startPeriodicUpdates();
-	}
-
-	/*
-	 * Called by Location Services if the connection to the location client
-	 * drops because of an error.
-	 */
-	@Override
-	public void onDisconnected() {
-		Log.d(Application.APPTAG, "onDisconnected!");
-		if (Application.APPDEBUG) {
-			Log.d("Disconnected from location services", Application.APPTAG);
-		}
-	}
-
-	/*
-	 * Called by Location Services if the attempt to Location Services fails.
-	 */
-	@Override
-	public void onConnectionFailed(ConnectionResult connectionResult) {
-		Log.d(Application.APPTAG, "onConnectionFailed!");
-		if (connectionResult.hasResolution()) {
-			try {
-
-				// Start an Activity that tries to resolve the error
-				connectionResult.startResolutionForResult(this,
-						CONNECTION_FAILURE_RESOLUTION_REQUEST);
-
-			} catch (IntentSender.SendIntentException e) {
-
-				if (Application.APPDEBUG) {
-					// Thrown if Google Play services canceled the original
-					// PendingIntent
-					Log.d(Application.APPTAG,
-							"An error occurred when connecting to location services.",
-							e);
-				}
-			}
-		} else {
-			// If no resolution is available, display a dialog to the user with
-			// the error.
-			showErrorDialog(connectionResult.getErrorCode());
-		}
-	}
-
-	/*
-	 * Report location updates to the UI.
-	 */
-	@Override
-	public void onLocationChanged(Location location) {
-		Log.d(Application.APPTAG, "onLocationChanged!");
-		currentLocation = location;
-		if (lastLocation != null
-				&& LocationHelper.geoPointFromLocation(location)
-						.distanceInMilesTo(
-								LocationHelper
-										.geoPointFromLocation(lastLocation)) < 0.01) {
-			// If the location hasn't changed by more than 10 meters, ignore it.
-			return;
-		}
-		lastLocation = location;
-		LatLng myLatLng = new LatLng(location.getLatitude(),
-				location.getLongitude());
-		if (!hasSetUpInitialLocation) {
-			// Zoom to the current location.
-			updateZoom(myLatLng);
-			hasSetUpInitialLocation = true;
-		}
-
-		// Saving new user location
-		saveUserLocation();
-
-		// Update map radius indicator
-		updateCircle(myLatLng);
-		doMapQuery();
-		doListQuery();
-	}
-
-	/*
 	 * In response to a request to start updates, send a request to Location
 	 * Services
 	 */
 	private void startPeriodicUpdates() {
-		Log.d(Application.APPTAG, "startPeriodicdUpdates!");
 		locationClient.requestLocationUpdates(locationRequest, this);
 	}
 
@@ -1017,7 +979,6 @@ public class MainActivity extends Activity implements LocationListener,
 	 * Services
 	 */
 	private void stopPeriodicUpdates() {
-		Log.d(Application.APPTAG, "stopPeriodicUpdates!");
 		locationClient.removeLocationUpdates(this);
 	}
 
@@ -1038,31 +999,11 @@ public class MainActivity extends Activity implements LocationListener,
 	/*
 	 * Save the user location on database
 	 */
-	private void saveUserLocation() {
-		Location myLoc = (currentLocation == null) ? lastLocation
-				: currentLocation;
-
-		if (myLoc == null) {
-			return;
-		}
-		// Saving user location
-		ParseUser user = ParseUser.getCurrentUser();
-		user.put("location", LocationHelper.geoPointFromLocation(myLoc));
-	}
-
-	/*
-	 * Set up a query to update the list view
-	 */
-	private void doListQuery() {
-		Log.d(Application.APPTAG, "doListQuery!");
-		Location myLoc = (currentLocation == null) ? lastLocation
-				: currentLocation;
-		// If location info is available, load the data
-		if (myLoc != null) {
-			// Refreshes the list view with new data based
-			// usually on updated location data.
-			userQueryAdapter.loadObjects();
-		}
+	private void saveUserLocation(Location location) {
+		// TODO: verify saving user location
+		ParseGeoPoint newPoint = LocationHelper.geoPointFromLocation(location);
+		mUser.put("location", newPoint);
+		mUser.saveInBackground();
 	}
 
 	/*
@@ -1086,10 +1027,8 @@ public class MainActivity extends Activity implements LocationListener,
 		ParseQuery<ParseUser> mapQuery = ParseUser.getQuery();
 		// Set up additional query filters
 		mapQuery.whereWithinMiles("location", myPoint, MAX_SEARCH_DISTANCE);
-		mapQuery.whereNotEqualTo("username", ParseUser.getCurrentUser()
-				.getUsername());
-		mapQuery.whereContainedIn("interestList", ParseUser.getCurrentUser()
-				.getList("interestList"));
+		mapQuery.whereNotEqualTo("username", mUser.getUsername());
+		mapQuery.whereContainedIn("interestList", mUser.getList("interestList"));
 		mapQuery.orderByAscending("username");
 		mapQuery.setLimit(MAX_SEARCH_RESULTS);
 		mapQuery.findInBackground(new FindCallback<ParseUser>() {
@@ -1109,9 +1048,9 @@ public class MainActivity extends Activity implements LocationListener,
 				if (myUpdateNumber != mostRecentMapUpdate) {
 					return;
 				}
-
-				// Load Contacts TODO:verify!
+				// Load contacts arraylist
 				contacts = objects;
+				// Initialize contacts list
 				initializeList();
 
 				// Contacts to show on the map
@@ -1144,8 +1083,6 @@ public class MainActivity extends Activity implements LocationListener,
 								oldMarker.remove();
 							}
 						}
-						// Display a red marker with a predefined title and no
-						// snippet
 						markerOpts = markerOpts
 								.title(getResources().getString(
 										R.string.post_out_of_range))
@@ -1212,7 +1149,7 @@ public class MainActivity extends Activity implements LocationListener,
 	 */
 	private void updateZoom(LatLng myLatLng) {
 		Log.d(Application.APPTAG, "updateZoom!");
-		// Get the bounds to zoom to
+		// Get the bounds to zoom
 		bounds = LocationHelper.calculateBoundsWithCenter(myLatLng);
 		mapFragment.setOnCameraChangeListener(new OnCameraChangeListener() {
 			@Override
