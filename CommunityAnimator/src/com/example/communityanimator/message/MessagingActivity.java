@@ -210,18 +210,6 @@ public class MessagingActivity extends Activity {
 
 			Log.d(Application.APPTAG, "client: " + client.toString());
 			Log.d(Application.APPTAG, "msg: " + msg.toString());
-			// Log.d(Application.APPTAG, "List<PushPair> : " + arg2.);
-			// String message = "Start messaging now!";
-			// // Create Installation query
-			// ParseQuery<ParseInstallation> pushQuery = ParseInstallation
-			// .getQuery();
-			// pushQuery.whereEqualTo("user", client);
-			//
-			// // Send push notification to query
-			// ParsePush push = new ParsePush();
-			// push.setQuery(pushQuery);
-			// push.setMessage(message);
-			// push.sendInBackground();
 
 		}
 	}

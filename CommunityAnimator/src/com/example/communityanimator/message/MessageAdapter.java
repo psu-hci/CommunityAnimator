@@ -1,6 +1,8 @@
 package com.example.communityanimator.message;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import android.app.Activity;
@@ -78,6 +80,11 @@ public class MessageAdapter extends BaseAdapter {
 		TextView txtMessage = (TextView) convertView
 				.findViewById(R.id.txtMessage);
 		txtMessage.setText(message.getTextBody());
+
+		SimpleDateFormat sdf = new SimpleDateFormat("h:mm a");
+		String currentDateandTime = sdf.format(new Date());
+		TextView txtDate = (TextView) convertView.findViewById(R.id.txtDate);
+		txtDate.setText(currentDateandTime);
 
 		return convertView;
 	}

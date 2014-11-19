@@ -105,7 +105,8 @@
     <string name="progress_signUp">Signing up...</string>
 
     <!-- Strings related Messaging -->
-    <string name="message_elipses">Message...</string>
+    <string name="message_elipses">Type message...</string>
+    <string name="send">Send</string>
 
     <!-- Strings from Settings Summary -->
     <string name="wifi_only">On/Off</string>
@@ -118,6 +119,8 @@
     <string name="wifiTitle">Wifi only</string>
     <string name="notificationsTitle">Notifications</string>
     <string name="tonesTitle">Conversations tones</string>
+    <string name="ringtoneSound">Set Ringtone</string>
+    <string name="ringtoneSilent">Silent</string>
     <string name="vibrateTitle">Vibrate</string>
     <string name="tellTitle">Tell a friend</string>
     <string name="contactsTitle">Show all contacts</string>

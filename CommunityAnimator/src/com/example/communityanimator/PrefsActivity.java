@@ -6,12 +6,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.MailTo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
+import android.preference.RingtonePreference;
+import android.preference.SwitchPreference;
+import android.text.TextUtils;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -25,6 +35,9 @@ public class PrefsActivity extends PreferenceActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.prefs);
+
+		// Get instance of Vibrator from current Context
+		final Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 		Preference logout = findPreference("logout");
 		logout.setOnPreferenceClickListener(new OnPreferenceClickListener() {
@@ -69,6 +82,28 @@ public class PrefsActivity extends PreferenceActivity {
 				return true;
 			}
 		});
+
+		SwitchPreference vibrate = (SwitchPreference) findPreference("vibrate");
+		vibrate.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+
+			@Override
+			public boolean onPreferenceChange(Preference preference,
+					Object newValue) {
+
+				boolean switched = ((SwitchPreference) preference).isChecked();
+
+				if (switched) {
+					long[] pattern = { 0, 100, 1000 };
+					v.vibrate(pattern, -1);
+				} else {
+					v.cancel();
+				}
+				return true;
+			}
+		});
+
+		// Set notification
+		bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
 
 	}
 
@@ -160,5 +195,80 @@ public class PrefsActivity extends PreferenceActivity {
 			return null;
 		}
 		return text.toString();
+	}
+
+	/**
+	 * A preference value change listener that updates the preference's summary
+	 * to reflect its new value.
+	 */
+	private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+		@Override
+		public boolean onPreferenceChange(Preference preference, Object value) {
+			String stringValue = value.toString();
+
+			// if (preference instanceof ListPreference) {
+			// // For list preferences, look up the correct display value in
+			// // the preference's 'entries' list.
+			// ListPreference listPreference = (ListPreference) preference;
+			// int index = listPreference.findIndexOfValue(stringValue);
+			//
+			// // Set the summary to reflect the new value.
+			// preference
+			// .setSummary(index >= 0 ? listPreference.getEntries()[index]
+			// : null);
+			//
+			// } else
+			if (preference instanceof RingtonePreference) {
+				// For ringtone preferences, look up the correct display value
+				// using RingtoneManager.
+				if (TextUtils.isEmpty(stringValue)) {
+					// Empty values correspond to 'silent' (no ringtone).
+					preference.setSummary(R.string.ringtoneSilent);
+
+				} else {
+					Ringtone ringtone = RingtoneManager.getRingtone(
+							preference.getContext(), Uri.parse(stringValue));
+
+					if (ringtone == null) {
+						// Clear the summary if there was a lookup error.
+						preference.setSummary(null);
+					} else {
+						// Set the summary to reflect the new ringtone display
+						// name.
+						String name = ringtone
+								.getTitle(preference.getContext());
+						preference.setSummary(name);
+					}
+				}
+			} else {
+				// For all other preferences, set the summary to the value's
+				// simple string representation.
+				preference.setSummary(stringValue);
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * Binds a preference's summary to its value. More specifically, when the
+	 * preference's value is changed, its summary (line of text below the
+	 * preference title) is updated to reflect the value. The summary is also
+	 * immediately updated upon calling this method. The exact display format is
+	 * dependent on the type of preference.
+	 * 
+	 * @see #sBindPreferenceSummaryToValueListener
+	 */
+	private static void bindPreferenceSummaryToValue(Preference preference) {
+		// Set the listener to watch for value changes.
+		preference
+				.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
+
+		// Trigger the listener immediately with the preference's
+		// current value.
+		sBindPreferenceSummaryToValueListener.onPreferenceChange(
+				preference,
+				PreferenceManager.getDefaultSharedPreferences(
+						preference.getContext()).getString(preference.getKey(),
+						""));
 	}
 }

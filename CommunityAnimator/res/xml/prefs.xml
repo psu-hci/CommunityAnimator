@@ -12,22 +12,33 @@
             android:summary="@string/wifi_only"
             android:title="@string/wifiTitle" />
 
-        <PreferenceScreen android:key="notifications" 
-            android:title="@string/notificationsTitle">
+        <PreferenceScreen
+            android:key="notifications"
+            android:title="@string/notificationsTitle" >
             <CheckBoxPreference
                 android:defaultValue="true"
-                android:key="ringtone"
+                android:key="notifications_new_message"
                 android:summary="@string/ringtone"
                 android:title="@string/tonesTitle" />
+
+            <RingtonePreference
+                android:defaultValue="content://settings/system/notification_sound"
+                android:dependency="notifications_new_message"
+                android:key="notifications_new_message_ringtone"
+                android:ringtoneType="notification"
+                android:title="@string/ringtoneSound" />
 
             <SwitchPreference
                 android:defaultValue="true"
                 android:key="vibrate"
                 android:summary="@string/vibrate"
-                android:title="@string/vibrateTitle" />
-        </PreferenceScreen>
+                android:title="@string/vibrateTitle" >
+            </SwitchPreference>
 
-        <PreferenceScreen android:key="contacts"
+
+        </PreferenceScreen>
+        <PreferenceScreen
+            android:key="contacts"
             android:title="Contacts" >
             <EditTextPreference
                 android:key="email"
@@ -39,8 +50,8 @@
                 android:summary="@string/show"
                 android:title="@string/contactsTitle" />
         </PreferenceScreen>
-
-        <PreferenceScreen android:key="help"
+        <PreferenceScreen
+            android:key="help"
             android:title="@string/helpTitle" >
             <Preference
                 android:key="about"

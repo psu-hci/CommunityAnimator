@@ -87,7 +87,6 @@
         </activity>
         <activity
             android:name=".PrefsActivity"
-            android:noHistory="true"
             android:screenOrientation="portrait" >
         </activity>
         <activity
