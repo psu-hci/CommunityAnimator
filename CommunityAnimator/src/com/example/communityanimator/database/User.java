@@ -4,6 +4,7 @@ public class User {
 
 	private String name;
 	private boolean status;
+	private boolean chatting;
 	private byte[] file;
 
 	public String getUsername() {
@@ -20,6 +21,14 @@ public class User {
 
 	public void setStatus(Boolean value) {
 		this.status = value;
+	}
+
+	public Boolean getChatting() {
+		return chatting;
+	}
+
+	public void setChatting(Boolean value) {
+		this.chatting = value;
 	}
 
 	public byte[] getPhotoFile() {

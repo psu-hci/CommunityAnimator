@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
+import com.example.communityanimator.util.Application;
 import com.parse.ParseUser;
 import com.sinch.android.rtc.ClientRegistration;
 import com.sinch.android.rtc.Sinch;
@@ -27,7 +29,7 @@ public class MessageService extends Service implements SinchClientListener {
 	private String currentUserId;
 	private LocalBroadcastManager broadcaster;
 	private Intent broadcastIntent = new Intent(
-			"com.sinch.messagingtutorial.app.ListUsersActivity");
+			"com.example.communityanimator.NotificationActivity");
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
@@ -44,6 +46,7 @@ public class MessageService extends Service implements SinchClientListener {
 	}
 
 	public void startSinchClient(String username) {
+		Log.d(Application.APPTAG, "startSinchClient!");
 		sinchClient = Sinch.getSinchClientBuilder().context(this)
 				.userId(username).applicationKey(APP_KEY)
 				.applicationSecret(APP_SECRET).environmentHost(ENVIRONMENT)

@@ -8,6 +8,7 @@ import com.parse.Parse;
 import com.parse.PushService;
 
 public class Application extends android.app.Application {
+
 	// Debugging switch
 	public static final boolean APPDEBUG = false;
 
@@ -33,7 +34,6 @@ public class Application extends android.app.Application {
 	public void onCreate() {
 		super.onCreate();
 
-		// ParseObject.registerSubclass(User.class);
 		Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
 				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
 

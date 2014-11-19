@@ -70,6 +70,7 @@
     <string name="profile">Profile</string>
     <string name="view">View</string>
     <string name="status">Status</string>
+    <string name="chat">Chat</string>
     <string name="animated">animated</string>
     <string name="distance">Distance</string>
     <string name="number">50 feet away</string>
@@ -102,7 +103,7 @@
     <string name="Female">Female</string>
     <string name="SaveAccount">Save Account</string>
     <string name="progress_signUp">Signing up...</string>
-    
+
     <!-- Strings related Messaging -->
     <string name="message_elipses">Message...</string>
 

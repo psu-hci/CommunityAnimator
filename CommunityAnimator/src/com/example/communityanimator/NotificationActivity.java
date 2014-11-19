@@ -1,23 +1,32 @@
 package com.example.communityanimator;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.communityanimator.message.MessagingActivity;
 import com.example.communityanimator.util.Application;
 import com.parse.FindCallback;
+import com.parse.ParseAnalytics;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParsePush;
@@ -27,21 +36,36 @@ import com.parse.ParseUser;
 public class NotificationActivity extends Activity {
 
 	String sender, receiver;
+	private ProgressDialog progressDialog;
+	private BroadcastReceiver receiverBroadcast = null;
+	String data;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		ParseAnalytics.trackAppOpened(getIntent());
 		Intent intent = getIntent();
-		String data = intent.getDataString();
-
+		JSONObject json;
 		try {
-			JSONObject jObj = new JSONObject(data);
-			sender = jObj.getString("sender");
-			receiver = jObj.getString("receiver");
+			json = new JSONObject(intent.getExtras()
+					.getString("com.parse.Data"));
+			Iterator itr = json.keys();
+
+			while (itr.hasNext()) {
+				String key = (String) itr.next();
+				if (key.equals("customdata")) {
+
+					data = json.getString(key);
+				}
+			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+
+		StringTokenizer tokens = new StringTokenizer(data, "/");
+		final String sender = tokens.nextToken();
+		final String receiver = tokens.nextToken();
 
 		AlertDialog.Builder alertDialogStatus = new AlertDialog.Builder(
 				NotificationActivity.this);
@@ -66,8 +90,9 @@ public class NotificationActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 
+				showSpinner();
 				ParseQuery<ParseUser> receiverQuery = ParseUser.getQuery();
-				receiverQuery.whereEqualTo("username", receiver);
+				receiverQuery.whereEqualTo("username", sender);
 				receiverQuery.findInBackground(new FindCallback<ParseUser>() {
 
 					@Override
@@ -80,6 +105,7 @@ public class NotificationActivity extends Activity {
 							intent.putExtra("RECIPIENT_ID", object.get(0)
 									.getObjectId());
 							startActivity(intent);
+
 						} else {
 							Log.d(Application.APPTAG,
 									"An error occurred while querying.", e);
@@ -114,5 +140,32 @@ public class NotificationActivity extends Activity {
 				startActivity(i);
 			}
 		});
+
+	}
+
+	// show a loading spinner while the sinch client starts
+	private void showSpinner() {
+		progressDialog = new ProgressDialog(this);
+		progressDialog.setTitle("Loading");
+		progressDialog.setMessage("Please wait...");
+		progressDialog.show();
+
+		receiverBroadcast = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				Boolean success = intent.getBooleanExtra("success", false);
+				progressDialog.dismiss();
+				if (!success) {
+					Toast.makeText(getApplicationContext(),
+							"Messaging service failed to start",
+							Toast.LENGTH_LONG).show();
+				}
+			}
+		};
+
+		LocalBroadcastManager.getInstance(this).registerReceiver(
+				receiverBroadcast,
+				new IntentFilter(
+						"com.example.communityanimator.NotificationActivity"));
 	}
 }

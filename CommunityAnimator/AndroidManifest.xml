@@ -106,11 +106,11 @@
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/maps_app_key" />
         <!-- Messaging -->
-        <service android:name=".MessageService" >
+        <service android:name=".message.MessageService" >
         </service>
 
         <activity
-            android:name=".MessagingActivity"
+            android:name=".message.MessagingActivity"
             android:screenOrientation="portrait" >
         </activity>
 
@@ -120,6 +120,7 @@
         <receiver android:name="com.parse.ParseBroadcastReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.RECEIVE_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
         </receiver>

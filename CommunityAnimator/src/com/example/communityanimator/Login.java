@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.communityanimator.message.MessageService;
 import com.example.communityanimator.util.Application;
 import com.parse.LogInCallback;
 import com.parse.Parse;
@@ -43,6 +44,7 @@ public class Login extends Activity {
 	Boolean isInternetPresent = false;
 	// Connection detector class
 	ConnectionDetector cd;
+	private Intent serviceIntent;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +58,9 @@ public class Login extends Activity {
 
 		// creating connection detector class instance
 		cd = new ConnectionDetector(getApplicationContext());
+
+		serviceIntent = new Intent(getApplicationContext(),
+				MessageService.class);
 
 		btn_LoginIn = (Button) findViewById(R.id.btn_login);
 		btn_SignUp = (Button) findViewById(R.id.btn_signup);
@@ -179,6 +184,7 @@ public class Login extends Activity {
 			public void done(ParseUser user, ParseException e) {
 				dialog.dismiss();
 				if (e == null) {
+					startService(serviceIntent);
 					loginSuccessful();
 					// Associate the device with a user
 					ParseInstallation installation = ParseInstallation

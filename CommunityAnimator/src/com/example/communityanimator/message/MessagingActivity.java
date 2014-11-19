@@ -9,12 +9,14 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.communityanimator.R;
+import com.example.communityanimator.util.Application;
 import com.parse.FindCallback;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -100,12 +102,16 @@ public class MessagingActivity extends Activity {
 
 	private void sendMessage() {
 		messageBody = messageBodyField.getText().toString();
+		Log.d(Application.APPTAG, "messageBody: " + messageBody);
 		if (messageBody.isEmpty()) {
 			Toast.makeText(this, "Please enter a message", Toast.LENGTH_LONG)
 					.show();
 			return;
 		}
 
+		Log.d(Application.APPTAG, "recipientId: " + recipientId);
+		Log.d(Application.APPTAG, "messageBody: " + messageBody);
+		messageService.isSinchClientStarted();
 		messageService.sendMessage(recipientId, messageBody);
 		messageBodyField.setText("");
 	}
@@ -145,10 +151,13 @@ public class MessagingActivity extends Activity {
 		}
 
 		@Override
-		public void onMessageDelivered(MessageClient arg0,
-				MessageDeliveryInfo arg1) {
-			// TODO Auto-generated method stub
+		public void onMessageDelivered(MessageClient client,
+				MessageDeliveryInfo deliveryInfo) {
 
+			Log.d(Application.APPTAG,
+					"The message with id " + deliveryInfo.getMessageId()
+							+ " was delivered to the recipient with id"
+							+ deliveryInfo.getRecipientId());
 		}
 
 		@Override
@@ -196,12 +205,25 @@ public class MessagingActivity extends Activity {
 		}
 
 		@Override
-		public void onShouldSendPushData(MessageClient arg0, Message arg1,
-				List<PushPair> arg2) {
-			// TODO Auto-generated method stub
+		public void onShouldSendPushData(MessageClient client, Message msg,
+				List<PushPair> push) {
+
+			Log.d(Application.APPTAG, "client: " + client.toString());
+			Log.d(Application.APPTAG, "msg: " + msg.toString());
+			// Log.d(Application.APPTAG, "List<PushPair> : " + arg2.);
+			// String message = "Start messaging now!";
+			// // Create Installation query
+			// ParseQuery<ParseInstallation> pushQuery = ParseInstallation
+			// .getQuery();
+			// pushQuery.whereEqualTo("user", client);
+			//
+			// // Send push notification to query
+			// ParsePush push = new ParsePush();
+			// push.setQuery(pushQuery);
+			// push.setMessage(message);
+			// push.sendInBackground();
 
 		}
-
 	}
 
 }

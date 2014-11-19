@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
 
+import com.example.communityanimator.message.MessageService;
 import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 
@@ -19,13 +20,19 @@ public class DispatchActivity extends Activity {
 	public DispatchActivity() {
 	}
 
+	private Intent serviceIntent;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		serviceIntent = new Intent(getApplicationContext(),
+				MessageService.class);
+
 		// Check if there is current user info
 		if (ParseUser.getCurrentUser() != null) {
 
+			startService(serviceIntent);
 			// Associate the device with a user
 			ParseInstallation installation = ParseInstallation
 					.getCurrentInstallation();
@@ -36,8 +43,6 @@ public class DispatchActivity extends Activity {
 
 			// Start an intent for the logged in activity
 			if (reminder.equals(true)) {
-				// findScreenSize();
-				// findDensity();
 				startActivity(new Intent(this, MainActivity.class));
 			} else {
 				startActivity(new Intent(this, Login.class));

@@ -38,6 +38,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.communityanimator.database.User;
+import com.example.communityanimator.message.MessagingActivity;
 import com.example.communityanimator.util.Application;
 import com.example.communityanimator.util.ErrorDialogFragment;
 import com.example.communityanimator.util.LocationHelper;
@@ -60,6 +61,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
@@ -662,17 +664,41 @@ public class MainActivity extends Activity implements LocationListener,
 
 	private void initializeList() {
 		Log.d(Application.APPTAG, "initializeList!");
+
 		list = (ListView) findViewById(R.id.list);
 		list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-		// Send a notification to chat
+		// Send a notification or chat
 		list.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
 
+				Log.d(Application.APPTAG, "onItemCLick!");
 				TextView name = (TextView) view.findViewById(R.id.contactName);
-				pushNotification(name.getText().toString());
+
+				ParseQuery<ParseUser> query = ParseUser.getQuery();
+				query.whereEqualTo("username", name.getText().toString());
+				query.getFirstInBackground(new GetCallback<ParseUser>() {
+
+					@Override
+					public void done(ParseUser user, ParseException e) {
+
+						if (e == null) {
+							boolean chat = user.getBoolean("chatting");
+							if (chat) {
+								Log.d(Application.APPTAG, "chat true onclick!");
+								callMessaging(user.getObjectId());
+							} else {
+								pushNotification(user.getUsername());
+							}
+						} else {
+							Log.d(Application.APPTAG,
+									"An error occurred while querying.", e);
+						}
+					}
+				});
+
 			}
 		});
 		if (userData == null)
@@ -705,6 +731,8 @@ public class MainActivity extends Activity implements LocationListener,
 							us.setPhotoFile(fileObject.getData());
 							us.setUsername(contacts.get(i)
 									.getString("username"));
+							us.setChatting(contacts.get(i).getBoolean(
+									"chatting"));
 							userData.add(us);
 						}
 					}
@@ -713,12 +741,23 @@ public class MainActivity extends Activity implements LocationListener,
 					us.setStatus(contacts.get(i).getBoolean("status"));
 					us.setPhotoFile(null);
 					us.setUsername(contacts.get(i).getString("username"));
+					us.setChatting(contacts.get(i).getBoolean("chatting"));
 					userData.add(us);
 				}
 			}
 		} catch (ParseException e1) {
 			e1.printStackTrace();
 		}
+	}
+
+	private void callMessaging(String objectId) {
+		// TODO:create query to verify if they have conversation between each
+		// other
+		Intent intent = new Intent(getApplicationContext(),
+				MessagingActivity.class);
+		intent.putExtra("RECIPIENT_ID", objectId);
+		startActivity(intent);
+
 	}
 
 	private void initializeMap() {
@@ -740,38 +779,59 @@ public class MainActivity extends Activity implements LocationListener,
 
 	private void pushNotification(String user) {
 		Log.d(Application.APPTAG, "pushNotification!");
-		ParseUser current = ParseUser.getCurrentUser();
-		JSONObject data = new JSONObject();
-		try {
-			data.put("sender", current.getUsername());
-			data.put("receiver", user);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		// Find user by username
+		// Find receiver status by name
 		ParseQuery<ParseUser> userQuery = ParseUser.getQuery();
 		userQuery.whereEqualTo("username", user);
-		userQuery.whereEqualTo("status", true);
+		userQuery.getFirstInBackground(new GetCallback<ParseUser>() {
 
-		// Find devices associated with these user
-		ParseQuery<ParseInstallation> pushQuery = ParseInstallation.getQuery();
-		pushQuery.whereMatchesQuery("user", userQuery);
+			@SuppressWarnings("static-access")
+			@Override
+			public void done(ParseUser user, ParseException e) {
 
-		// Create time interval
-		long weekInterval = 60 * 60 * 24 * 7; // 1 week
+				if (e == null) {
+					boolean status = user.getBoolean("status");
+					if (status) {
 
-		// Send push notification to query
-		ParsePush push = new ParsePush();
-		push.setExpirationTimeInterval(weekInterval);
-		push.setQuery(pushQuery); // Set our Installation query
-		push.setMessage("Hi! You received a friend request.");
-		push.setData(data);
-		push.sendInBackground();
+						JSONObject obj;
+						ParseUser current = ParseUser.getCurrentUser();
 
-		Toast.makeText(getApplicationContext(), "Friend Request sent!",
-				Toast.LENGTH_LONG).show();
+						try {
+							obj = new JSONObject();
+							obj.put("alert",
+									"Hi! You receive a friend request.");
+							obj.put("action",
+									"com.example.communityanimator.UPDATE_STATUS");
+							obj.put("customdata", current.getUsername() + "/"
+									+ user.getUsername());
+
+							ParsePush push = new ParsePush();
+							ParseQuery<ParseInstallation> query = ParseInstallation
+									.getQuery();
+
+							// Notification for Android users
+							query.whereEqualTo("user", user.getUsername());
+							push.setQuery(query);
+							push.setData(obj);
+							push.sendInBackground();
+
+							Toast.makeText(getApplicationContext(),
+									"Friend Request sent!", Toast.LENGTH_LONG)
+									.show();
+						} catch (JSONException ex) {
+							ex.printStackTrace();
+						}
+
+					} else {
+						Toast.makeText(getApplicationContext(),
+								"This contact is not animated to chat!",
+								Toast.LENGTH_LONG).show();
+					}
+				} else {
+					Log.d(Application.APPTAG,
+							"An error occurred while querying.", e);
+				}
+			}
+		});
 	}
 
 	/*

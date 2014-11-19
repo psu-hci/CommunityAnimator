@@ -1,6 +1,5 @@
 package com.example.communityanimator;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -22,15 +21,12 @@ public class CustomListAdapter extends BaseAdapter {
 
 	LayoutInflater mInflater;
 	private List<User> user = null;
-	private ArrayList<User> arraylist;
 	Context mContext;
 
 	public CustomListAdapter(Context context, List<User> objects) {
 		this.mContext = context;
 		this.user = objects;
 		mInflater = LayoutInflater.from(mContext);
-		// this.arraylist = new ArrayList<User>();
-		// this.arraylist.addAll(objects);
 
 		Log.d("Adapter", "list size:" + objects.size());
 	}
@@ -39,6 +35,7 @@ public class CustomListAdapter extends BaseAdapter {
 		TextView txtName;
 		TextView txtStatus;
 		ImageView image;
+		ImageView add;
 	}
 
 	@Override
@@ -66,17 +63,27 @@ public class CustomListAdapter extends BaseAdapter {
 			holder.txtName = (TextView) view.findViewById(R.id.contactName);
 			holder.txtStatus = (TextView) view.findViewById(R.id.contactStatus);
 			holder.image = (ImageView) view.findViewById(R.id.imgContact);
+			holder.add = (ImageView) view.findViewById(R.id.addContact);
 			view.setTag(holder);
 		} else {
 			holder = (ViewHolder) view.getTag();
 		}
 
 		holder.txtName.setText(user.get(position).getUsername());
+		Log.d("Adapter", "username: " + user.get(position).getUsername());
 		boolean status = user.get(position).getStatus();
 		if (status) {
 			holder.txtStatus.setText("animated");
 		} else {
 			holder.txtStatus.setText("busy");
+		}
+
+		boolean chatting = user.get(position).getChatting();
+		Log.d("Adapter", "chatting: " + chatting);
+		if (chatting) {
+			holder.add.setImageResource(R.drawable.ic_chat);
+		} else {
+			holder.add.setImageResource(R.drawable.ic_plus);
 		}
 
 		byte[] data;
