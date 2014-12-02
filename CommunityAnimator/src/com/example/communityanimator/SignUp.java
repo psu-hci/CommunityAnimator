@@ -14,7 +14,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -23,11 +22,11 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.communityanimator.database.Categories;
+import com.example.communityanimator.scenarios.InterestExpandableListActivity;
+import com.example.communityanimator.scenarios.TaskExpandableListActivity;
 import com.example.communityanimator.util.Application;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -36,7 +35,6 @@ import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
-import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
@@ -51,15 +49,14 @@ public class SignUp extends Activity implements
 	ParseUser user;
 	List<ParseObject> ob;
 	ProgressDialog mProgressDialog;
-	ListView listView;
 	EditText usernameEditText, passwordEditText, dateEditText,
 			occupationEditText, emailEditText;
-	RadioButton male, female;
 	ImageView profileImage;
 	byte[] image;
 	LocationClient mLocationClient;
 	Location location;
 	String view;
+	TextView task, interest;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -72,16 +69,37 @@ public class SignUp extends Activity implements
 		dateEditText = (EditText) findViewById(R.id.DOBET);
 		occupationEditText = (EditText) findViewById(R.id.OccupationET);
 		emailEditText = (EditText) findViewById(R.id.EmailET);
-		male = (RadioButton) findViewById(R.id.MaleRB);
-		female = (RadioButton) findViewById(R.id.FemaleRB);
+		task = (TextView) findViewById(R.id.taskList);
+		interest = (TextView) findViewById(R.id.interestList);
 		profileImage = (ImageView) findViewById(R.id.ProfPic);
-		listView = (ListView) findViewById(R.id.listView1);
-		listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
 		Intent i = getIntent();
 		if (i.hasExtra("MainView")) {
 			view = "MainView";
 		}
+
+		task.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Intent i = new Intent(SignUp.this,
+						TaskExpandableListActivity.class);
+				startActivity(i);
+
+			}
+		});
+
+		interest.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+
+				Intent i = new Intent(SignUp.this,
+						InterestExpandableListActivity.class);
+				startActivity(i);
+
+			}
+		});
 
 		Button uploadImage = (Button) findViewById(R.id.UploadImage);
 		uploadImage.setOnClickListener(new View.OnClickListener() {
@@ -112,7 +130,7 @@ public class SignUp extends Activity implements
 		mLocationClient = new LocationClient(this, this, this);
 
 		// Generate list View from ArrayList
-		new RemoteDataTask().execute();
+		// new RemoteDataTask().execute();
 	}
 
 	@Override
@@ -221,11 +239,11 @@ public class SignUp extends Activity implements
 					.append(getString(R.string.error_invalid_email));
 		}
 
-		if (male.isChecked()) {
-			gender = "male";
-		} else {
-			gender = "female";
-		}
+		// if (male.isChecked()) {
+		// gender = "male";
+		// } else {
+		// gender = "female";
+		// }
 
 		// If there is a validation error, display the error
 		if (validationError) {
@@ -266,20 +284,20 @@ public class SignUp extends Activity implements
 		CheckBox cb;
 		ArrayList<String> interests = new ArrayList<String>();
 		// TODO:verify this listview.getchildat and listview.getchildcount
-		for (int x = 0; x < listView.getChildCount(); x++) {
-			cb = (CheckBox) listView.getChildAt(x).findViewById(R.id.checkBox1);
-
-			if (cb.isChecked()) {
-				interests.add(ob.get(x).getObjectId());
-			}
-		}
+		// for (int x = 0; x < listView.getChildCount(); x++) {
+		// cb = (CheckBox) listView.getChildAt(x).findViewById(R.id.checkBox1);
+		//
+		// if (cb.isChecked()) {
+		// interests.add(ob.get(x).getObjectId());
+		// }
+		// }
 		// Add interest list in current user
 		user.put("interestList", interests);
 
 		// Verify if the user uploaded an image
 		if (image.length != 0) {
 			Log.d(Application.APPTAG, "entrou image not null!!");
-			user.put("image", "true");
+			user.put("image", true);
 			// Create the ParseFile to upload image
 			ParseFile file = new ParseFile(user.getUsername() + ".png", image);
 			// Upload the image into Parse Cloud
@@ -295,7 +313,7 @@ public class SignUp extends Activity implements
 			// Create the class and the columns
 			imgupload.saveInBackground();
 		} else {
-			user.put("image", "false");
+			user.put("image", false);
 		}
 
 		// Call the Parse signup method
@@ -338,27 +356,27 @@ public class SignUp extends Activity implements
 		occupationEditText.setText(occupation);
 		emailEditText.setText(email);
 
-		if (gender.equalsIgnoreCase("male")) {
-			male.setChecked(true);
-		} else {
-			female.setChecked(true);
-		}
+		// if (gender.equalsIgnoreCase("male")) {
+		// male.setChecked(true);
+		// } else {
+		// female.setChecked(true);
+		// }
 
 		CheckBox cb;
-		@SuppressWarnings("unchecked")
-		ArrayList<String> userInterest = (ArrayList<String>) user
-				.get("interestList");
-
-		for (int i = 0; i < userInterest.size(); i++) {
-			for (int j = 0; j < listView.getCount(); j++) {
-
-				if (userInterest.get(i).equals(ob.get(j).getObjectId())) {
-					cb = (CheckBox) listView.getChildAt(j).findViewById(
-							R.id.checkBox1);
-					cb.setChecked(true);
-				}
-			}
-		}
+		// @SuppressWarnings("unchecked")
+		// ArrayList<String> userInterest = (ArrayList<String>) user
+		// .get("interestList");
+		//
+		// for (int i = 0; i < userInterest.size(); i++) {
+		// for (int j = 0; j < listView.getCount(); j++) {
+		//
+		// if (userInterest.get(i).equals(ob.get(j).getObjectId())) {
+		// cb = (CheckBox) listView.getChildAt(j).findViewById(
+		// R.id.checkBox1);
+		// cb.setChecked(true);
+		// }
+		// }
+		// }
 	}
 
 	/**
@@ -406,65 +424,65 @@ public class SignUp extends Activity implements
 	}
 
 	// RemoteDataTask AsyncTask
-	private class RemoteDataTask extends AsyncTask<Void, Void, Void> {
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			// Create a progressdialog
-			mProgressDialog = new ProgressDialog(SignUp.this);
-			// Set progressdialog message
-			mProgressDialog.setMessage("Loading...");
-			mProgressDialog.setIndeterminate(false);
-			// Show progressdialog
-			mProgressDialog.show();
-		}
-
-		@Override
-		protected Void doInBackground(Void... params) {
-			// Locate the class table named "Interest" in Parse.com
-			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(
-					"Interest");
-			query.orderByAscending("_created_at");
-			try {
-				ob = query.find();
-			} catch (ParseException e) {
-				Log.e("Error", e.getMessage());
-				e.printStackTrace();
-			}
-			return null;
-		}
-
-		@Override
-		protected void onPostExecute(Void result) {
-
-			ArrayList<Categories> categoriesList = new ArrayList<Categories>();
-
-			// Retrieve object "interestName" from Parse.com database
-			for (ParseObject categories : ob) {
-				Categories c = new Categories(
-						(String) categories.get("interestName"), false);
-				categoriesList.add(c);
-			}
-
-			dataAdapter = new CategoriesAdapter(SignUp.this,
-					R.layout.interest_items, categoriesList);
-
-			// Binds the Adapter to the ListView
-			listView.setAdapter(dataAdapter);
-
-			listView.post(new Runnable() {
-				@Override
-				public void run() {
-
-					if (view == "MainView") {
-						profileView();
-					}
-
-				}
-			});
-			// Close the progressdialog
-			mProgressDialog.dismiss();
-		}
-	}
+	// private class RemoteDataTask extends AsyncTask<Void, Void, Void> {
+	// @Override
+	// protected void onPreExecute() {
+	// super.onPreExecute();
+	// // Create a progressdialog
+	// mProgressDialog = new ProgressDialog(SignUp.this);
+	// // Set progressdialog message
+	// mProgressDialog.setMessage("Loading...");
+	// mProgressDialog.setIndeterminate(false);
+	// // Show progressdialog
+	// mProgressDialog.show();
+	// }
+	//
+	// @Override
+	// protected Void doInBackground(Void... params) {
+	// // Locate the class table named "Interest" in Parse.com
+	// ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(
+	// "Interest");
+	// query.orderByAscending("_created_at");
+	// try {
+	// ob = query.find();
+	// } catch (ParseException e) {
+	// Log.e("Error", e.getMessage());
+	// e.printStackTrace();
+	// }
+	// return null;
+	// }
+	//
+	// @Override
+	// protected void onPostExecute(Void result) {
+	//
+	// ArrayList<Categories> categoriesList = new ArrayList<Categories>();
+	//
+	// // Retrieve object "interestName" from Parse.com database
+	// for (ParseObject categories : ob) {
+	// Categories c = new Categories(
+	// (String) categories.get("interestName"), false);
+	// categoriesList.add(c);
+	// }
+	//
+	// dataAdapter = new CategoriesAdapter(SignUp.this,
+	// R.layout.interest_items, categoriesList);
+	//
+	// // Binds the Adapter to the ListView
+	// listView.setAdapter(dataAdapter);
+	//
+	// listView.post(new Runnable() {
+	// @Override
+	// public void run() {
+	//
+	// if (view == "MainView") {
+	// profileView();
+	// }
+	//
+	// }
+	// });
+	// // Close the progressdialog
+	// mProgressDialog.dismiss();
+	// }
+	// }
 
 }

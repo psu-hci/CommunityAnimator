@@ -79,7 +79,8 @@ public class NotificationActivity extends Activity {
 		final TextView question = (TextView) notificationView
 				.findViewById(R.id.txtquestion);
 
-		question.setText("Do you want to chat with " + sender + " ?");
+		question.setText(sender
+				+ "has initiated a task with you. Do you wish to accept?");
 		final AlertDialog dialog = alertDialogStatus.create();
 		dialog.show();
 
@@ -122,8 +123,8 @@ public class NotificationActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 
-				String message = "Your friend request was refused by "
-						+ receiver;
+				String message = "Your task to " + receiver
+						+ "was not accepted at this time.";
 				// Create Installation query
 				ParseQuery<ParseInstallation> pushQuery = ParseInstallation
 						.getQuery();

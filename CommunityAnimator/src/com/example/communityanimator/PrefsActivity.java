@@ -46,6 +46,8 @@ public class PrefsActivity extends PreferenceActivity {
 			public boolean onPreferenceClick(Preference preference) {
 				ParseUser.getCurrentUser();
 				ParseUser.logOut();
+				// TODO: insert a message
+				// "you´re no longer animated. Your location will not appear in the map."
 				Intent intent = new Intent(PrefsActivity.this, Login.class);
 				startActivity(intent);
 				PrefsActivity.this.finish();

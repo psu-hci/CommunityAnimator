@@ -15,7 +15,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Color;
@@ -213,7 +212,8 @@ public class MainActivity extends Activity implements LocationListener,
 				AlertDialog.Builder alertDialog = new AlertDialog.Builder(
 						MainActivity.this);
 				LayoutInflater inflater = getLayoutInflater();
-				View convertView = inflater.inflate(R.layout.option_dialog, null);
+				View convertView = inflater.inflate(R.layout.option_dialog,
+						null);
 				alertDialog.setView(convertView);
 				alertDialog.setTitle("View");
 				final ListView lv = (ListView) convertView
@@ -278,7 +278,8 @@ public class MainActivity extends Activity implements LocationListener,
 				AlertDialog.Builder alertDialogStatus = new AlertDialog.Builder(
 						MainActivity.this);
 				LayoutInflater inflater = getLayoutInflater();
-				View statusView = inflater.inflate(R.layout.option_dialog, null);
+				View statusView = inflater
+						.inflate(R.layout.option_dialog, null);
 
 				alertDialogStatus.setView(statusView);
 				alertDialogStatus.setTitle("Status");
@@ -341,8 +342,8 @@ public class MainActivity extends Activity implements LocationListener,
 				AlertDialog.Builder alertDialogDistance = new AlertDialog.Builder(
 						MainActivity.this);
 				LayoutInflater inflater = getLayoutInflater();
-				View distanceView = inflater
-						.inflate(R.layout.option_dialog, null);
+				View distanceView = inflater.inflate(R.layout.option_dialog,
+						null);
 
 				alertDialogDistance.setView(distanceView);
 				alertDialogDistance.setTitle("Distance");
@@ -1052,7 +1053,6 @@ public class MainActivity extends Activity implements LocationListener,
 				contacts = objects;
 				// Initialize contacts list
 				initializeList();
-
 				// Contacts to show on the map
 				Set<String> toKeep = new HashSet<String>();
 				// Loop through the results of the search
@@ -1180,24 +1180,4 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 	}
 
-	@Override
-	public void onBackPressed() {
-		new AlertDialog.Builder(this)
-				.setIcon(android.R.drawable.ic_dialog_alert)
-				.setTitle("Closing Activity")
-				.setMessage("Do you want to leave this screen?")
-				.setPositiveButton("Yes",
-						new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog,
-									int which) {
-								finish();
-								Intent i = new Intent(getApplicationContext(),
-										Login.class);
-								i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-								startActivity(i);
-							}
-
-						}).setNegativeButton("No", null).show();
-	}
 }

@@ -17,7 +17,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.communityanimator.message.MessageService;
 import com.example.communityanimator.util.Application;
@@ -191,8 +190,12 @@ public class Login extends Activity {
 							.getCurrentInstallation();
 					installation.put("user", user.getUsername());
 					installation.saveInBackground();
-				} else
+				} else {
+					Log.d(Application.APPTAG,
+							"An error occurred while querying.", e);
 					loginUnSuccessful();
+				}
+
 			}
 		});
 
@@ -215,7 +218,6 @@ public class Login extends Activity {
 	}
 
 	protected void loginUnSuccessful() {
-		Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
 		showAlertDialog(Login.this, "Login",
 				"Username or Password is invalid.", false);
 	}
@@ -248,23 +250,6 @@ public class Login extends Activity {
 
 		// Showing Alert Message
 		alertDialog.show();
-	}
-
-	@Override
-	public void onBackPressed() {
-		new AlertDialog.Builder(this)
-				.setIcon(android.R.drawable.ic_dialog_alert)
-				.setTitle("Closing Aplication")
-				.setMessage("Do you want to close this aplication?")
-				.setPositiveButton("Yes",
-						new DialogInterface.OnClickListener() {
-							@Override
-							public void onClick(DialogInterface dialog,
-									int which) {
-								finish();
-							}
-
-						}).setNegativeButton("No", null).show();
 	}
 
 }
