@@ -1,8 +1,11 @@
 package com.example.communityanimator.scenarios;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.ExpandableListActivity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,15 +20,16 @@ import android.widget.TextView;
 
 import com.example.communityanimator.R;
 import com.example.communityanimator.util.Application;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 public class InterestExpandableListActivity extends ExpandableListActivity {
 
-	// Initialize variables
-	private static final String STR_CHECKED = " has Checked!";
-	private static final String STR_UNCHECKED = " has unChecked!";
 	private int ParentClickStatus = -1;
-	private int ChildClickStatus = -1;
 	private ArrayList<?> parents;
+	List<ParseObject> ob;
+	ProgressDialog mProgressDialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -34,140 +38,8 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 		// Set ExpandableListView values
 		getExpandableListView().setGroupIndicator(null);
 
-		// Creating static data in arraylist
-		final ArrayList<?> interestList = buildData();
-
 		// Adding ArrayList data to ExpandableListView values
-		loadHosts(interestList);
-	}
-
-	/**
-	 * here should come your data service implementation
-	 * 
-	 * @return
-	 */
-	private ArrayList<InterestParent<?>> buildData() {
-		// Creating ArrayList of type parent class to store parent class objects
-		final ArrayList<InterestParent<?>> list = new ArrayList<InterestParent<?>>();
-		for (int i = 1; i < 18; i++) {
-			// Create parent class object
-			final InterestParent<InterestChild> parent = new InterestParent<InterestChild>();
-
-			// Set values in parent class object
-			if (i == 1) {
-				parent.setText("Agriculture and Food");
-				parent.setChildren(new ArrayList<InterestChild>());
-
-				// Create Child class object
-				final InterestChild child = new InterestChild();
-				child.setText("Cooking");
-				parent.getChildren().add(child);
-				final InterestChild child1 = new InterestChild();
-				child1.setText("Local farm co-ops");
-				parent.getChildren().add(child1);
-			} else if (i == 2) {
-				parent.setText("Arts and Culture");
-			} else if (i == 3) {
-				parent.setText("Built Enviroment");
-			} else if (i == 4) {
-				parent.setText("Civic Engagement");
-				parent.setChildren(new ArrayList<InterestChild>());
-				// Create Child class object
-				final InterestChild child = new InterestChild();
-				child.setText("Volunteerism");
-				parent.getChildren().add(child);
-			} else if (i == 5) {
-				parent.setText("Bussiness/Economy");
-			} else if (i == 6) {
-				parent.setText("Education and Learning");
-				parent.setChildren(new ArrayList<InterestChild>());
-				final InterestChild child = new InterestChild();
-				child.setText("Tutoring");
-				parent.getChildren().add(child);
-			} else if (i == 7) {
-				parent.setText("Energy");
-			} else if (i == 8) {
-				parent.setText("Entrepreneuriship");
-			} else if (i == 9) {
-				parent.setText("Health and Wellness");
-			} else if (i == 10) {
-				parent.setText("Politics");
-				parent.setChildren(new ArrayList<InterestChild>());
-
-				final InterestChild child = new InterestChild();
-				child.setText("Justice and Equality");
-				parent.getChildren().add(child);
-			} else if (i == 11) {
-				parent.setText("Technology");
-			} else if (i == 12) {
-				parent.setText("Transportation(and Parking)");
-			} else if (i == 13) {
-				parent.setText("Community Events");
-			} else if (i == 14) {
-				parent.setText("Community Projects");
-				parent.setChildren(new ArrayList<InterestChild>());
-
-				final InterestChild child = new InterestChild();
-				child.setText("Lunar Lion");
-				parent.getChildren().add(child);
-			} else if (i == 15) {
-				parent.setText("Recreation and Leisure");
-				parent.setChildren(new ArrayList<InterestChild>());
-
-				final InterestChild child = new InterestChild();
-				child.setText("Local Recreational Sports");
-				parent.getChildren().add(child);
-				final InterestChild child1 = new InterestChild();
-				child1.setText("Climbing");
-				parent.getChildren().add(child1);
-				final InterestChild child2 = new InterestChild();
-				child2.setText("Biking");
-				parent.getChildren().add(child2);
-				final InterestChild child3 = new InterestChild();
-				child3.setText("Kayaking");
-				parent.getChildren().add(child3);
-				final InterestChild child4 = new InterestChild();
-				child4.setText("Running");
-				parent.getChildren().add(child4);
-				final InterestChild child5 = new InterestChild();
-				child5.setText("Hiking");
-				parent.getChildren().add(child5);
-				final InterestChild child6 = new InterestChild();
-				child6.setText("Senior Sports");
-				parent.getChildren().add(child6);
-				final InterestChild child7 = new InterestChild();
-				child7.setText("Writers and Bloggers");
-				parent.getChildren().add(child7);
-				final InterestChild child8 = new InterestChild();
-				child8.setText("Traveling");
-				parent.getChildren().add(child8);
-				final InterestChild child9 = new InterestChild();
-				child9.setText("Gaming");
-				parent.getChildren().add(child9);
-			} else if (i == 16) {
-				parent.setText("Community Groups");
-				parent.setChildren(new ArrayList<InterestChild>());
-
-				final InterestChild child = new InterestChild();
-				child.setText("Family/Play Groups");
-				parent.getChildren().add(child);
-				final InterestChild child1 = new InterestChild();
-				child1.setText("Seniors");
-				parent.getChildren().add(child1);
-				final InterestChild child2 = new InterestChild();
-				child2.setText("Veterans");
-				parent.getChildren().add(child2);
-				final InterestChild child3 = new InterestChild();
-				child3.setText("Immigrants in local area");
-				parent.getChildren().add(child3);
-			} else if (i == 17) {
-				parent.setText("Nature, enviroment climate change");
-			}
-
-			// Adding Parent class object to ArrayList
-			list.add(parent);
-		}
-		return list;
+		new RemoteDataTask().execute();
 	}
 
 	private void loadHosts(final ArrayList<?> newParents) {
@@ -364,5 +236,67 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 		}
 		/***********************************************************************/
 
+	}
+
+	// RemoteDataTask AsyncTask
+	private class RemoteDataTask extends AsyncTask<Void, Void, Void> {
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			mProgressDialog = new ProgressDialog(
+					InterestExpandableListActivity.this);
+			mProgressDialog.setMessage("Loading...");
+			mProgressDialog.setIndeterminate(false);
+			mProgressDialog.show();
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			// Locate the class table named "Interest" in Parse.com
+			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(
+					"Interest");
+			query.orderByAscending("interestName");
+			try {
+				ob = query.find();
+			} catch (ParseException e) {
+				Log.e("Error", e.getMessage());
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected void onPostExecute(Void result) {
+
+			// Creating ArrayList of type parent class to store parent class
+			// objects
+			ArrayList<InterestParent<?>> list = new ArrayList<InterestParent<?>>();
+
+			// Retrieve object "interestName" from Parse.com database
+			for (ParseObject interest : ob) {
+				final InterestParent<InterestChild> parent = new InterestParent<InterestChild>();
+				parent.setText(interest.getString("interestName"));
+
+				ArrayList<String> childList = (ArrayList<String>) interest
+						.get("child");
+
+				if (childList.size() != 0) {
+					parent.setChildren(new ArrayList<InterestChild>());
+					for (int i = 0; i < childList.size(); i++) {
+
+						InterestChild child = new InterestChild();
+						child.setText(childList.get(i));
+						parent.getChildren().add(child);
+					}
+				}
+
+				list.add(parent);
+			}
+
+			loadHosts(list);
+			// Close the progressdialog
+			mProgressDialog.dismiss();
+		}
 	}
 }

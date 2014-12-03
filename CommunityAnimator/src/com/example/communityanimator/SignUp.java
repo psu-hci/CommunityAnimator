@@ -2,7 +2,6 @@ package com.example.communityanimator;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,8 +46,6 @@ public class SignUp extends Activity implements
 
 	CategoriesAdapter dataAdapter = null;
 	ParseUser user;
-	List<ParseObject> ob;
-	ProgressDialog mProgressDialog;
 	EditText usernameEditText, passwordEditText, dateEditText,
 			occupationEditText, emailEditText;
 	ImageView profileImage;
@@ -128,9 +125,6 @@ public class SignUp extends Activity implements
 
 		// Create the LocationRequest object
 		mLocationClient = new LocationClient(this, this, this);
-
-		// Generate list View from ArrayList
-		// new RemoteDataTask().execute();
 	}
 
 	@Override
@@ -422,67 +416,5 @@ public class SignUp extends Activity implements
 		Toast.makeText(this, "Disconnected. Please re-connect.",
 				Toast.LENGTH_SHORT).show();
 	}
-
-	// RemoteDataTask AsyncTask
-	// private class RemoteDataTask extends AsyncTask<Void, Void, Void> {
-	// @Override
-	// protected void onPreExecute() {
-	// super.onPreExecute();
-	// // Create a progressdialog
-	// mProgressDialog = new ProgressDialog(SignUp.this);
-	// // Set progressdialog message
-	// mProgressDialog.setMessage("Loading...");
-	// mProgressDialog.setIndeterminate(false);
-	// // Show progressdialog
-	// mProgressDialog.show();
-	// }
-	//
-	// @Override
-	// protected Void doInBackground(Void... params) {
-	// // Locate the class table named "Interest" in Parse.com
-	// ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(
-	// "Interest");
-	// query.orderByAscending("_created_at");
-	// try {
-	// ob = query.find();
-	// } catch (ParseException e) {
-	// Log.e("Error", e.getMessage());
-	// e.printStackTrace();
-	// }
-	// return null;
-	// }
-	//
-	// @Override
-	// protected void onPostExecute(Void result) {
-	//
-	// ArrayList<Categories> categoriesList = new ArrayList<Categories>();
-	//
-	// // Retrieve object "interestName" from Parse.com database
-	// for (ParseObject categories : ob) {
-	// Categories c = new Categories(
-	// (String) categories.get("interestName"), false);
-	// categoriesList.add(c);
-	// }
-	//
-	// dataAdapter = new CategoriesAdapter(SignUp.this,
-	// R.layout.interest_items, categoriesList);
-	//
-	// // Binds the Adapter to the ListView
-	// listView.setAdapter(dataAdapter);
-	//
-	// listView.post(new Runnable() {
-	// @Override
-	// public void run() {
-	//
-	// if (view == "MainView") {
-	// profileView();
-	// }
-	//
-	// }
-	// });
-	// // Close the progressdialog
-	// mProgressDialog.dismiss();
-	// }
-	// }
 
 }

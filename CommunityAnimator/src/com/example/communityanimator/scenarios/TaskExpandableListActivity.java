@@ -1,8 +1,11 @@
 package com.example.communityanimator.scenarios;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.ExpandableListActivity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,18 +17,20 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.communityanimator.R;
+import com.example.communityanimator.util.Application;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 public class TaskExpandableListActivity extends ExpandableListActivity {
 
 	// Initialize variables
-	private static final String STR_CHECKED = " has Checked!";
-	private static final String STR_UNCHECKED = " has unChecked!";
 	private int ParentClickStatus = -1;
-	private int ChildClickStatus = -1;
 	private ArrayList<InterestParent<?>> parents;
+	List<ParseObject> ob;
+	ProgressDialog mProgressDialog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -34,68 +39,8 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 		// Set ExpandableListView values
 		getExpandableListView().setGroupIndicator(null);
 
-		// Creating static data in arraylist
-		final ArrayList<InterestParent<?>> dummyList = buildDummyData();
-
 		// Adding ArrayList data to ExpandableListView values
-		loadHosts(dummyList);
-	}
-
-	/**
-	 * here should come your data service implementation
-	 * 
-	 * @return
-	 */
-	private ArrayList<InterestParent<?>> buildDummyData() {
-		// Creating ArrayList of type parent class to store parent class objects
-		final ArrayList<InterestParent<?>> list = new ArrayList<InterestParent<?>>();
-		for (int i = 1; i < 4; i++) {
-			// Create parent class object
-			final InterestParent<InterestChild> parent = new InterestParent<InterestChild>();
-
-			// Set values in parent class object
-			if (i == 1) {
-				parent.setText("Parent 0");
-				parent.setChildren(new ArrayList<InterestChild>());
-
-				// Create Child class object
-				final InterestChild child = new InterestChild();
-				child.setText("Child 0");
-
-				// Add Child class object to parent class object
-				parent.getChildren().add(child);
-			} else if (i == 2) {
-				parent.setText("Parent 1");
-				parent.setChildren(new ArrayList<InterestChild>());
-
-				final InterestChild child = new InterestChild();
-				child.setText("Child 0");
-				parent.getChildren().add(child);
-				final InterestChild child1 = new InterestChild();
-				child1.setText("Child 1");
-				parent.getChildren().add(child1);
-			} else if (i == 3) {
-				parent.setText("Parent 1");
-				parent.setChildren(new ArrayList<InterestChild>());
-
-				final InterestChild child = new InterestChild();
-				child.setText("Child 0");
-				parent.getChildren().add(child);
-				final InterestChild child1 = new InterestChild();
-				child1.setText("Child 1");
-				parent.getChildren().add(child1);
-				final InterestChild child2 = new InterestChild();
-				child2.setText("Child 2");
-				parent.getChildren().add(child2);
-				final InterestChild child3 = new InterestChild();
-				child3.setText("Child 3");
-				parent.getChildren().add(child3);
-			}
-
-			// Adding Parent class object to ArrayList
-			list.add(parent);
-		}
-		return list;
+		new RemoteDataTask().execute();
 	}
 
 	private void loadHosts(final ArrayList<InterestParent<?>> newParents) {
@@ -149,25 +94,11 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 			// .getText2());
 			ImageView image = (ImageView) convertView.findViewById(R.id.image);
 
-			// ImageView rightcheck = (ImageView) convertView
-			// .findViewById(R.id.rightcheck);
-			//
-			// // Log.i("onCheckedChanged", "isChecked: "+parent.isChecked());
-			//
-			// // Change right check image on parent at runtime
-			// if (parent.isChecked() == true) {
-			// rightcheck
-			// .setImageResource(getResources()
-			// .getIdentifier(
-			// "com.androidexample.customexpandablelist:drawable/rightcheck",
-			// null, null));
-			// } else {
-			// rightcheck
-			// .setImageResource(getResources()
-			// .getIdentifier(
-			// "com.androidexample.customexpandablelist:drawable/button_check",
-			// null, null));
-			// }
+			if (isExpanded) {
+				image.setImageResource(R.drawable.ic_down);
+			} else {
+				image.setImageResource(R.drawable.ic_right);
+			}
 
 			// Get grouprow.xml file checkbox elements
 			CheckBox checkbox = (CheckBox) convertView
@@ -196,7 +127,6 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 			// Get childrow.xml file elements and set values
 			((TextView) convertView.findViewById(R.id.text1)).setText(child
 					.getText());
-			ImageView image = (ImageView) convertView.findViewById(R.id.image);
 
 			return convertView;
 		}
@@ -212,17 +142,8 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 		public long getChildId(int groupPosition, int childPosition) {
 			/****** When Child row clicked then this function call *******/
 
-			// Log.i("Noise",
-			// "parent == "+groupPosition+"=  child : =="+childPosition);
-			if (ChildClickStatus != childPosition) {
-				ChildClickStatus = childPosition;
-
-				Toast.makeText(
-						getApplicationContext(),
-						"Parent :" + groupPosition + " Child :" + childPosition,
-						Toast.LENGTH_LONG).show();
-			}
-
+			Log.i(Application.APPTAG, "parent == " + groupPosition
+					+ "=  child : ==" + childPosition);
 			return childPosition;
 		}
 
@@ -236,7 +157,7 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 
 		@Override
 		public Object getGroup(int groupPosition) {
-			Log.i("Parent", groupPosition + "=  getGroup ");
+			Log.i(Application.APPTAG, groupPosition + "=  getGroup ");
 
 			return parents.get(groupPosition);
 		}
@@ -249,15 +170,8 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 		// Call when parent row clicked
 		@Override
 		public long getGroupId(int groupPosition) {
-			Log.i("Parent", groupPosition + "=  getGroupId "
+			Log.i(Application.APPTAG, groupPosition + "=  getGroupId "
 					+ ParentClickStatus);
-
-			if (groupPosition == 2 && ParentClickStatus != groupPosition) {
-
-				// Alert to user
-				Toast.makeText(getApplicationContext(),
-						"Parent :" + groupPosition, Toast.LENGTH_LONG).show();
-			}
 
 			ParentClickStatus = groupPosition;
 			if (ParentClickStatus == 0)
@@ -305,21 +219,81 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
-				Log.i("onCheckedChanged", "isChecked: " + isChecked);
+				Log.i(Application.APPTAG, "isChecked: " + isChecked);
 				parent.setChecked(isChecked);
 
 				((MyExpandableListAdapter) getExpandableListAdapter())
 						.notifyDataSetChanged();
 
-				final Boolean checked = parent.isChecked();
-				Toast.makeText(
-						getApplicationContext(),
-						"Parent : " + parent.getText() + " "
-								+ (checked ? STR_CHECKED : STR_UNCHECKED),
-						Toast.LENGTH_LONG).show();
+				// final Boolean checked = parent.isChecked();
+				// Toast.makeText(
+				// getApplicationContext(),
+				// "Parent : " + parent.getText() + " "
+				// + (checked ? STR_CHECKED : STR_UNCHECKED),
+				// Toast.LENGTH_LONG).show();
 			}
 		}
 		/***********************************************************************/
+	}
 
+	// RemoteDataTask AsyncTask
+	private class RemoteDataTask extends AsyncTask<Void, Void, Void> {
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			mProgressDialog = new ProgressDialog(
+					TaskExpandableListActivity.this);
+			mProgressDialog.setMessage("Loading...");
+			mProgressDialog.setIndeterminate(false);
+			mProgressDialog.show();
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			// Locate the class table named "Interest" in Parse.com
+			ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Task");
+			query.orderByAscending("Task");
+			try {
+				ob = query.find();
+			} catch (ParseException e) {
+				Log.e("Error", e.getMessage());
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected void onPostExecute(Void result) {
+
+			// Creating ArrayList of type parent class to store parent class
+			// objects
+			ArrayList<InterestParent<?>> list = new ArrayList<InterestParent<?>>();
+
+			// Retrieve object "interestName" from Parse.com database
+			for (ParseObject interest : ob) {
+				final InterestParent<InterestChild> parent = new InterestParent<InterestChild>();
+				parent.setText(interest.getString("Task"));
+
+				ArrayList<String> childList = (ArrayList<String>) interest
+						.get("child");
+
+				if (childList.size() != 0) {
+					parent.setChildren(new ArrayList<InterestChild>());
+					for (int i = 0; i < childList.size(); i++) {
+
+						InterestChild child = new InterestChild();
+						child.setText(childList.get(i));
+						parent.getChildren().add(child);
+					}
+				}
+
+				list.add(parent);
+			}
+
+			loadHosts(list);
+			// Close the progressdialog
+			mProgressDialog.dismiss();
+		}
 	}
 }

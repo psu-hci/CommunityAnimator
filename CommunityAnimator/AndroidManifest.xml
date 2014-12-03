@@ -94,7 +94,11 @@
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name="com.example.communityanimator.scenarios.InterestExpandableListActivity"
+            android:name=".scenarios.InterestExpandableListActivity"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".scenarios.TaskExpandableListActivity"
             android:screenOrientation="portrait" >
         </activity>
         <activity
