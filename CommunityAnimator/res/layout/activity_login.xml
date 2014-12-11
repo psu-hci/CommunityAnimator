@@ -27,8 +27,8 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:text="@string/usernameHint"
-            android:textColor="@android:color/darker_gray"
-            android:textAppearance="?android:attr/textAppearance" />
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="@android:color/darker_gray" />
 
         <EditText
             android:id="@+id/username"
@@ -38,7 +38,7 @@
             android:background="@drawable/edittext_round_corners"
             android:inputType="text"
             android:maxLines="1"
-            android:singleLine="true" />
+            android:singleLine="true"/>
 
         <TextView
             android:id="@+id/txtpassword"
@@ -47,8 +47,8 @@
             android:layout_below="@id/username"
             android:padding="5dp"
             android:text="@string/passwordHint"
-            android:textColor="@android:color/darker_gray"
-            android:textAppearance="?android:attr/textAppearance" />
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="@android:color/darker_gray" />
 
         <EditText
             android:id="@+id/password"
@@ -61,7 +61,7 @@
             android:imeOptions="actionUnspecified"
             android:inputType="textPassword"
             android:maxLines="1"
-            android:singleLine="true" />
+            android:singleLine="true"/>
 
         <LinearLayout
             android:id="@+id/rememberContent"
@@ -82,8 +82,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/remember"
-                android:textColor="@android:color/darker_gray"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@android:color/darker_gray" />
         </LinearLayout>
 
         <TextView
@@ -91,14 +91,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@id/rememberContent"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_below="@id/password"
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
             android:text="@string/forgot"
-            android:textColor="@color/blue"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/blue" />
     </RelativeLayout>
 
     <Button
@@ -124,8 +124,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:text="@string/social"
-        android:textColor="@android:color/darker_gray"
-        android:textAppearance="?android:attr/textAppearance" />
+        android:textAppearance="?android:attr/textAppearance"
+        android:textColor="@android:color/darker_gray" />
 
     <RelativeLayout
         android:id="@+id/facebookContent"
@@ -144,8 +144,8 @@
             style="@style/ButtonAppThemeDarkBlue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/facebookIco"
             android:layout_toEndOf="@id/facebookIco"
+            android:layout_toRightOf="@id/facebookIco"
             android:text="@string/facebook"
             android:textAppearance="?android:attr/textAppearance" />
     </RelativeLayout>
@@ -167,8 +167,8 @@
             style="@style/ButtonAppThemeLightBlue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/twitterIco"
             android:layout_toEndOf="@id/twitterIco"
+            android:layout_toRightOf="@id/twitterIco"
             android:text="@string/twitter"
             android:textAppearance="?android:attr/textAppearance" />
     </RelativeLayout>
@@ -184,8 +184,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/signUpQuestion"
-            android:textColor="@android:color/darker_gray"
-            android:textAppearance="?android:attr/textAppearance" />
+            android:textAppearance="?android:attr/textAppearance"
+            android:textColor="@android:color/darker_gray" />
 
         <Button
             android:id="@+id/btn_signup"
@@ -195,7 +195,7 @@
             android:layout_below="@id/signUpquestion"
             android:layout_gravity="center_horizontal"
             android:text="@string/signUp"
-           android:textAppearance="?android:attr/textAppearance" />
+            android:textAppearance="?android:attr/textAppearance" />
     </RelativeLayout>
 
 </LinearLayout>

@@ -40,7 +40,8 @@
         android:background="@drawable/edittext_round_corners"
         android:hint="@string/userName"
         android:inputType="textPersonName"
-        android:selectAllOnFocus="true" />
+        android:selectAllOnFocus="true"
+        android:singleLine="true" />
 
     <EditText
         android:id="@+id/PasswordET"
@@ -50,7 +51,8 @@
         android:layout_marginBottom="10dp"
         android:background="@drawable/edittext_round_corners"
         android:hint="@string/passwordHint"
-        android:inputType="text" />
+        android:inputType="text"
+        android:singleLine="true" />
 
     <EditText
         android:id="@+id/EmailET"
@@ -60,7 +62,8 @@
         android:layout_marginBottom="10dp"
         android:background="@drawable/edittext_round_corners"
         android:hint="@string/email"
-        android:inputType="textEmailAddress" />
+        android:inputType="textEmailAddress"
+        android:singleLine="true" />
 
     <EditText
         android:id="@+id/DOBET"
@@ -70,7 +73,8 @@
         android:layout_marginBottom="10dp"
         android:background="@drawable/edittext_round_corners"
         android:hint="@string/DOB"
-        android:inputType="date" />
+        android:inputType="date"
+        android:singleLine="true" />
 
     <EditText
         android:id="@+id/OccupationET"
@@ -79,14 +83,15 @@
         android:layout_below="@id/DOBET"
         android:layout_marginBottom="10dp"
         android:background="@drawable/edittext_round_corners"
-        android:hint="@string/Occupation" />
+        android:hint="@string/Occupation"
+        android:singleLine="true" />
 
     <Spinner
         android:id="@+id/gender"
         style="@style/SpinnerAppThemeSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/OccupationET">
+        android:layout_below="@id/OccupationET" >
     </Spinner>
 
     <TextView

@@ -72,7 +72,6 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.user_profile);
-		Log.d(Application.APPTAG, "onCreate");
 
 		// Setup SignUp form
 		usernameEditText = (EditText) findViewById(R.id.NameET);
@@ -189,7 +188,6 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.d(Application.APPTAG, "onResume");
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		String name = preferences.getString("Name", "");
@@ -218,12 +216,10 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 		}
 
 		String interest = preferences.getString("Interest", "");
-		// Log.d(Application.APPTAG, "received interest: " + interest);
 		if (!interest.equalsIgnoreCase("")) {
 			List<String> myList = new ArrayList<String>();
 			Collections.addAll(myList, interest.split("\\s*,\\s*"));
 			interestList = (ArrayList<String>) myList;
-			// Log.d(Application.APPTAG, "final interest: " + interestList);
 		}
 
 		String task = preferences.getString("Task", "");
@@ -237,7 +233,6 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 	@Override
 	protected void onPause() {
 		super.onPause();
-		Log.d(Application.APPTAG, "onPause");
 		// Store values between instances here
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
@@ -251,10 +246,8 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 
 		if (interestList != null) {
 			String strInterest = interestList.toString();
-			// Log.d(Application.APPTAG, "before interest: " + strInterest);
 			strInterest = strInterest.replace("[", "").replace("]", "");
 			strInterest.trim();
-			// Log.d(Application.APPTAG, "after interest: " + strInterest);
 			editor.putString("Interest", strInterest);
 		}
 
@@ -392,17 +385,18 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 	}
 
 	private boolean verifyFields() {
-		// TODO:fix!
+
 		boolean validationError = false;
 		StringBuilder validationErrorMessage = new StringBuilder(
 				getString(R.string.logn_generic_error));
-		if (interestList.size() == 0) {
+
+		if (interestList == null || interestList.isEmpty()) {
 			validationError = true;
 			validationErrorMessage
 					.append(getString(R.string.error_interest_required));
 		}
 
-		if (taskList.size() == 0) {
+		if (taskList == null || taskList.isEmpty()) {
 			validationError = true;
 			validationErrorMessage
 					.append(getString(R.string.error_task_required));
