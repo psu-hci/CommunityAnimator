@@ -8,6 +8,7 @@ import android.util.DisplayMetrics;
 import android.widget.Toast;
 
 import com.example.communityanimator.message.MessageService;
+import com.example.communityanimator.util.ConfigHelper;
 import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 
@@ -25,6 +26,9 @@ public class DispatchActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		// Clear previous Preference
+		ConfigHelper.clearPreferences(getApplicationContext());
 
 		serviceIntent = new Intent(getApplicationContext(),
 				MessageService.class);
@@ -52,6 +56,7 @@ public class DispatchActivity extends Activity {
 			// Start and intent for the logged out activity
 			startActivity(new Intent(this, Login.class));
 		}
+
 	}
 
 	private void findScreenSize() {

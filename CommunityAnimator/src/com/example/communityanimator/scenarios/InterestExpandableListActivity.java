@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.app.ExpandableListActivity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,17 +13,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.communityanimator.R;
+import com.example.communityanimator.SignUp;
 import com.example.communityanimator.util.Application;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class InterestExpandableListActivity extends ExpandableListActivity {
 
@@ -30,16 +35,59 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 	private ArrayList<?> parents;
 	List<ParseObject> ob;
 	ProgressDialog mProgressDialog;
+	boolean viewProfile = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_expandablelist);
+
+		TextView title = (TextView) findViewById(R.id.textTitle);
+		title.setText(R.string.talkAbout);
+
+		Button saveChoice = (Button) findViewById(R.id.btn_SaveChoices);
+		saveChoice.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// Using a List to hold the IDs, but could use an array.
+				ArrayList<String> checkedIDs = new ArrayList<String>();
+
+				for (int i = 0; i < parents.size(); i++) {
+					InterestParent<?> parent = (InterestParent<?>) parents
+							.get(i);
+
+					if (parent.isChecked()) {
+						// Put the value of the id in our list
+						String id = ob.get(i).getObjectId();
+						checkedIDs.add(id);
+					}
+
+				}
+
+				Log.d(Application.APPTAG, "checkedIDs:" + checkedIDs);
+				Intent i = new Intent(InterestExpandableListActivity.this,
+						SignUp.class);
+				Bundle bundle = new Bundle();
+				bundle.putStringArrayList("interests", checkedIDs);
+				i.putExtras(bundle);
+				startActivity(i);
+			}
+		});
 
 		// Set ExpandableListView values
 		getExpandableListView().setGroupIndicator(null);
 
 		// Adding ArrayList data to ExpandableListView values
 		new RemoteDataTask().execute();
+	}
+
+	@Override
+	public void onBackPressed() {
+
+		Toast.makeText(this, "Press OK to save your interests.",
+				Toast.LENGTH_LONG).show();
+		return;
 	}
 
 	private void loadHosts(final ArrayList<?> newParents) {
@@ -62,6 +110,25 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private void viewProfile() {
+		ParseUser user = ParseUser.getCurrentUser();
+		if (user != null) {
+			for (int i = 0; i < parents.size(); i++) {
+				InterestParent<InterestChild> parent = (InterestParent<InterestChild>) parents
+						.get(i);
+
+				List<String> userInterest = (List<String>) user
+						.get("interestList");
+				for (int j = 0; j < userInterest.size(); j++) {
+					if (ob.get(i).getObjectId().equals(userInterest.get(j))) {
+						parent.setChecked(true);
+					}
+				}
+			}
+		}
+	}
+
 	/**
 	 * A Custom adapter to create Parent view (Used grouprow.xml) and Child
 	 * View((Used childrow.xml).
@@ -71,7 +138,6 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 		private LayoutInflater inflater;
 
 		public MyExpandableListAdapter() {
-			// Create Layout Inflator
 			inflater = LayoutInflater.from(InterestExpandableListActivity.this);
 		}
 
@@ -87,7 +153,6 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 			convertView = inflater.inflate(R.layout.grouprow_list, parentView,
 					false);
 
-			// Get grouprow.xml file elements and set values
 			((TextView) convertView.findViewById(R.id.text1)).setText(parent
 					.getText());
 			ImageView image = (ImageView) convertView.findViewById(R.id.image);
@@ -97,13 +162,11 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 				image.setImageResource(R.drawable.ic_right);
 			}
 
-			// Get grouprow.xml file checkbox elements
 			CheckBox checkbox = (CheckBox) convertView
 					.findViewById(R.id.checkbox);
 			checkbox.setChecked(parent.isChecked());
 
-			// Set CheckUpdateListener for CheckBox (see below
-			// CheckUpdateListener class)
+			// Set CheckUpdateListener for CheckBox
 			checkbox.setOnCheckedChangeListener(new CheckUpdateListener(parent));
 
 			return convertView;
@@ -131,18 +194,15 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 
 		@Override
 		public Object getChild(int groupPosition, int childPosition) {
-			// Log.i("Childs", groupPosition+"=  getChild =="+childPosition);
 			return ((InterestParent<?>) parents.get(groupPosition))
 					.getChildren().get(childPosition);
 		}
 
-		// Call when child row clicked
 		@Override
 		public long getChildId(int groupPosition, int childPosition) {
 			/****** When Child row clicked then this function call *******/
-
-			Log.i(Application.APPTAG, "parent == " + groupPosition
-					+ "=  child : ==" + childPosition);
+			// Log.i(Application.APPTAG, "parent == " + groupPosition
+			// + "=  child : ==" + childPosition);
 
 			return childPosition;
 		}
@@ -158,8 +218,7 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 
 		@Override
 		public Object getGroup(int groupPosition) {
-			Log.i(Application.APPTAG, groupPosition + "=  getGroup ");
-
+			// Log.i(Application.APPTAG, groupPosition + "=  getGroup ");
 			return parents.get(groupPosition);
 		}
 
@@ -171,8 +230,8 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 		// Call when parent row clicked
 		@Override
 		public long getGroupId(int groupPosition) {
-			Log.i(Application.APPTAG, groupPosition + "=  getGroupId "
-					+ ParentClickStatus);
+			// Log.i(Application.APPTAG, groupPosition + "=  getGroupId "
+			// + ParentClickStatus);
 
 			ParentClickStatus = groupPosition;
 			if (ParentClickStatus == 0)
@@ -220,18 +279,11 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
-				Log.i(Application.APPTAG, "isChecked: " + isChecked);
+				// Log.i(Application.APPTAG, "isChecked: " + isChecked);
 				parent.setChecked(isChecked);
 
 				((MyExpandableListAdapter) getExpandableListAdapter())
 						.notifyDataSetChanged();
-
-				// final Boolean checked = parent.isChecked();
-				// Toast.makeText(
-				// getApplicationContext(),
-				// "Parent : " + parent.getText() + " "
-				// + (checked ? STR_CHECKED : STR_UNCHECKED),
-				// Toast.LENGTH_LONG).show();
 			}
 		}
 		/***********************************************************************/
@@ -295,6 +347,7 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 			}
 
 			loadHosts(list);
+			viewProfile();
 			// Close the progressdialog
 			mProgressDialog.dismiss();
 		}

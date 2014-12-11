@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -148,15 +149,24 @@ public class Login extends Activity {
 		boolean cancel = false;
 		View focusView = null;
 
-		// Check for a valid password.
+		// Check for a valid username and password.
+		if (TextUtils.isEmpty(username)) {
+			mUserNameEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This field is required.</font>"));
+			focusView = mUserNameEditText;
+			cancel = true;
+		}
 		if (TextUtils.isEmpty(password)) {
 			mPasswordEditText
-					.setError(getString(R.string.error_field_required));
+					.setError(Html
+							.fromHtml("<font color='red'>This field is required.</font>"));
 			focusView = mPasswordEditText;
 			cancel = true;
 		} else if (password.length() < 4) {
 			mPasswordEditText
-					.setError(getString(R.string.error_invalid_password));
+					.setError(Html
+							.fromHtml("<font color='red'>This password must be at least 5 characters long.</font>"));
 			focusView = mPasswordEditText;
 			cancel = true;
 		}

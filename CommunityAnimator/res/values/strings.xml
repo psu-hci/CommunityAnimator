@@ -50,9 +50,11 @@
     <string name="error_duplicate_username">This username is already in use.</string>
     <string name="error_incorrect_password">This password is incorrect.</string>
     <string name="error_invalid_password">This password must be at least 5 characters long.</string>
-    <string name="error_field_required">Required field.</string>
+    <string name="error_interest_required">Please, select the conversation topic.</string>
+    <string name="error_task_required">Please, select the task area.</string>
+    <string name="error_field_required">This field is required.</string>
     <string name="session_invalid_error">Your current session is no longer valid. Please log in again.</string>
-    <string name="logn_generic_error">Something went wrong. Please retry.</string>
+    <string name="logn_generic_error">Something went wrong.</string>
 
     <!-- Strings related forget password -->
     <string name="askEmail">Enter Your Email Address:</string>
@@ -91,14 +93,14 @@
     <string name="DOB"> Date of Birth</string>
     <string name="Occupation"> Occupation</string>
     <string name="email">Email</string>
-    <string name="Male">Male</string>
-    <string name="Female">Female</string>
     <string name="SaveAccount">Save Account</string>
     <string name="progress_signUp">Signing up...</string>
     <string name="no_items">No task items</string>
     <string name="interestAreas">Conversation Topics ></string>
     <string name="taskAreas">Task Areas ></string>
     <string name="gender">Gender</string>
+    <string name="talkAbout">I am interested talk about:</string>
+    <string name="taskList">Task Categories</string>
 
     <!-- Strings related Messaging -->
     <string name="message_elipses">Type message...</string>

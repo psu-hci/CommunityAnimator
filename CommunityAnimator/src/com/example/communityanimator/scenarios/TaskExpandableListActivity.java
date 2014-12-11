@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.app.ExpandableListActivity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,30 +13,69 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.communityanimator.R;
+import com.example.communityanimator.SignUp;
 import com.example.communityanimator.util.Application;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class TaskExpandableListActivity extends ExpandableListActivity {
 
 	// Initialize variables
 	private int ParentClickStatus = -1;
-	private ArrayList<InterestParent<?>> parents;
+	private ArrayList<TaskParent<?>> parents;
 	List<ParseObject> ob;
 	ProgressDialog mProgressDialog;
+	boolean viewProfile = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_expandablelist);
 
+		TextView title = (TextView) findViewById(R.id.textTitle);
+		title.setText(R.string.taskList);
+
+		Button saveChoice = (Button) findViewById(R.id.btn_SaveChoices);
+		saveChoice.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// Using a List to hold the IDs, but could use an array.
+				ArrayList<String> checkedIDs = new ArrayList<String>();
+
+				for (int i = 0; i < parents.size(); i++) {
+					TaskParent<?> parent = parents.get(i);
+
+					if (parent.isChecked()) {
+						// Put the value of the id in our list
+						String id = ob.get(i).getObjectId();
+						checkedIDs.add(id);
+					}
+
+				}
+
+				Log.d(Application.APPTAG, "checkedIDs tasks:" + checkedIDs);
+				Intent i = new Intent(TaskExpandableListActivity.this,
+						SignUp.class);
+				Bundle bundle = new Bundle();
+				bundle.putStringArrayList("tasks", checkedIDs);
+				i.putExtras(bundle);
+				startActivity(i);
+			}
+		});
+
+		Log.d(Application.APPTAG, "viewprofile:" + viewProfile);
 		// Set ExpandableListView values
 		getExpandableListView().setGroupIndicator(null);
 
@@ -43,7 +83,33 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 		new RemoteDataTask().execute();
 	}
 
-	private void loadHosts(final ArrayList<InterestParent<?>> newParents) {
+	@Override
+	public void onBackPressed() {
+
+		Toast.makeText(this, "Press OK to save your tasks.", Toast.LENGTH_LONG)
+				.show();
+		return;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void viewProfile() {
+		ParseUser user = ParseUser.getCurrentUser();
+		if (user != null) {
+			for (int i = 0; i < parents.size(); i++) {
+				TaskParent<TaskChild> parent = (TaskParent<TaskChild>) parents
+						.get(i);
+
+				List<String> userTask = (List<String>) user.get("taskList");
+				for (int j = 0; j < userTask.size(); j++) {
+					if (ob.get(i).getObjectId().equals(userTask.get(j))) {
+						parent.setChecked(true);
+					}
+				}
+			}
+		}
+	}
+
+	private void loadHosts(final ArrayList<TaskParent<?>> newParents) {
 		if (newParents == null)
 			return;
 
@@ -81,7 +147,7 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 		@Override
 		public View getGroupView(int groupPosition, boolean isExpanded,
 				View convertView, ViewGroup parentView) {
-			final InterestParent<?> parent = parents.get(groupPosition);
+			final TaskParent<?> parent = parents.get(groupPosition);
 
 			// Inflate grouprow.xml file for parent rows
 			convertView = inflater.inflate(R.layout.grouprow_list, parentView,
@@ -90,8 +156,6 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 			// Get grouprow.xml file elements and set values
 			((TextView) convertView.findViewById(R.id.text1)).setText(parent
 					.getText());
-			// ((TextView) convertView.findViewById(R.id.text)).setText(parent
-			// .getText2());
 			ImageView image = (ImageView) convertView.findViewById(R.id.image);
 
 			if (isExpanded) {
@@ -100,13 +164,9 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 				image.setImageResource(R.drawable.ic_right);
 			}
 
-			// Get grouprow.xml file checkbox elements
 			CheckBox checkbox = (CheckBox) convertView
 					.findViewById(R.id.checkbox);
 			checkbox.setChecked(parent.isChecked());
-
-			// Set CheckUpdateListener for CheckBox (see below
-			// CheckUpdateListener class)
 			checkbox.setOnCheckedChangeListener(new CheckUpdateListener(parent));
 
 			return convertView;
@@ -116,9 +176,9 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 		@Override
 		public View getChildView(int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parentView) {
-			final InterestParent<?> parent = parents.get(groupPosition);
-			final InterestChild child = (InterestChild) parent.getChildren()
-					.get(childPosition);
+			final TaskParent<?> parent = parents.get(groupPosition);
+			final TaskChild child = (TaskChild) parent.getChildren().get(
+					childPosition);
 
 			// Inflate childrow.xml file for child rows
 			convertView = inflater.inflate(R.layout.childrow_list, parentView,
@@ -142,8 +202,8 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 		public long getChildId(int groupPosition, int childPosition) {
 			/****** When Child row clicked then this function call *******/
 
-			Log.i(Application.APPTAG, "parent == " + groupPosition
-					+ "=  child : ==" + childPosition);
+			// Log.i(Application.APPTAG, "parent == " + groupPosition
+			// + "=  child : ==" + childPosition);
 			return childPosition;
 		}
 
@@ -157,7 +217,7 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 
 		@Override
 		public Object getGroup(int groupPosition) {
-			Log.i(Application.APPTAG, groupPosition + "=  getGroup ");
+			// Log.i(Application.APPTAG, groupPosition + "=  getGroup ");
 
 			return parents.get(groupPosition);
 		}
@@ -170,8 +230,8 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 		// Call when parent row clicked
 		@Override
 		public long getGroupId(int groupPosition) {
-			Log.i(Application.APPTAG, groupPosition + "=  getGroupId "
-					+ ParentClickStatus);
+			// Log.i(Application.APPTAG, groupPosition + "=  getGroupId "
+			// + ParentClickStatus);
 
 			ParentClickStatus = groupPosition;
 			if (ParentClickStatus == 0)
@@ -210,27 +270,21 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 
 		private final class CheckUpdateListener implements
 				OnCheckedChangeListener {
-			private final InterestParent<?> parent;
+			private final TaskParent<?> parent;
 
-			private CheckUpdateListener(InterestParent<?> parent) {
+			private CheckUpdateListener(TaskParent<?> parent) {
 				this.parent = parent;
 			}
 
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
-				Log.i(Application.APPTAG, "isChecked: " + isChecked);
+				// Log.i(Application.APPTAG, "isChecked: " + isChecked);
 				parent.setChecked(isChecked);
 
 				((MyExpandableListAdapter) getExpandableListAdapter())
 						.notifyDataSetChanged();
 
-				// final Boolean checked = parent.isChecked();
-				// Toast.makeText(
-				// getApplicationContext(),
-				// "Parent : " + parent.getText() + " "
-				// + (checked ? STR_CHECKED : STR_UNCHECKED),
-				// Toast.LENGTH_LONG).show();
 			}
 		}
 		/***********************************************************************/
@@ -268,21 +322,21 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 
 			// Creating ArrayList of type parent class to store parent class
 			// objects
-			ArrayList<InterestParent<?>> list = new ArrayList<InterestParent<?>>();
+			ArrayList<TaskParent<?>> list = new ArrayList<TaskParent<?>>();
 
 			// Retrieve object "interestName" from Parse.com database
 			for (ParseObject interest : ob) {
-				final InterestParent<InterestChild> parent = new InterestParent<InterestChild>();
+				final TaskParent<TaskChild> parent = new TaskParent<TaskChild>();
 				parent.setText(interest.getString("Task"));
 
 				ArrayList<String> childList = (ArrayList<String>) interest
 						.get("child");
 
 				if (childList.size() != 0) {
-					parent.setChildren(new ArrayList<InterestChild>());
+					parent.setChildren(new ArrayList<TaskChild>());
 					for (int i = 0; i < childList.size(); i++) {
 
-						InterestChild child = new InterestChild();
+						TaskChild child = new TaskChild();
 						child.setText(childList.get(i));
 						parent.getChildren().add(child);
 					}
@@ -292,6 +346,7 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 			}
 
 			loadHosts(list);
+			viewProfile();
 			// Close the progressdialog
 			mProgressDialog.dismiss();
 		}

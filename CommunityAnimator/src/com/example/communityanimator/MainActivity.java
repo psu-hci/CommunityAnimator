@@ -67,16 +67,12 @@ import com.parse.ParseInstallation;
 import com.parse.ParseObject;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
-import com.parse.ParseQueryAdapter;
 import com.parse.ParseUser;
 
 public class MainActivity extends Activity implements LocationListener,
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener {
-	/*
-	 * Define a request code to send to Google Play services This code is
-	 * returned in Activity.onActivityResult
-	 */
+
 	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	// Milliseconds per second
 	private static final int MILLISECONDS_PER_SECOND = 1000;
@@ -92,8 +88,6 @@ public class MainActivity extends Activity implements LocationListener,
 			* FAST_CEILING_IN_SECONDS;
 	// Maximum results returned from a Parse query
 	private static final int MAX_SEARCH_RESULTS = 20;
-	// Maximum search radius for map in kilometers
-	private static final int MAX_SEARCH_DISTANCE = 100;
 
 	// Map fragment
 	private GoogleMap mapFragment;
@@ -119,10 +113,9 @@ public class MainActivity extends Activity implements LocationListener,
 	private LocationRequest locationRequest;
 	// Stores the current instantiation of the location client in this object
 	private LocationClient locationClient;
-	// Adapter for the Parse query
-	private ParseQueryAdapter<ParseUser> userQueryAdapter;
 
 	private ParseUser mUser = ParseUser.getCurrentUser();
+	private List<ParseUser> mUserList;
 
 	// ListView
 	ListView list;
@@ -397,6 +390,8 @@ public class MainActivity extends Activity implements LocationListener,
 						// Save distance on database
 						mUser.put("distance", lv.getCheckedItemPosition());
 						mUser.saveInBackground();
+
+						updateRadius();
 						dialog.dismiss();
 					}
 				});
@@ -433,7 +428,7 @@ public class MainActivity extends Activity implements LocationListener,
 						String name = locate.getText().toString();
 						if (name.matches("")) {
 							Toast.makeText(MainActivity.this,
-									"Please, enter your friend name.",
+									"Please, enter your friend´s name.",
 									Toast.LENGTH_SHORT).show();
 							return;
 						}
@@ -460,8 +455,9 @@ public class MainActivity extends Activity implements LocationListener,
 											return;
 										}
 										if (objects.size() == 0) {
-											Toast.makeText(MainActivity.this,
-													"Contact not found.",
+											Toast.makeText(
+													MainActivity.this,
+													"This person was not found.",
 													Toast.LENGTH_LONG).show();
 										} else {
 											for (ParseUser user : objects) {
@@ -479,7 +475,7 @@ public class MainActivity extends Activity implements LocationListener,
 																myPoint) > radius) {
 													Toast.makeText(
 															MainActivity.this,
-															"The contact is out of range. Get closer!",
+															"The person is too far away.",
 															Toast.LENGTH_LONG)
 															.show();
 												} else {
@@ -536,36 +532,13 @@ public class MainActivity extends Activity implements LocationListener,
 	@Override
 	protected void onStart() {
 		super.onStart();
-
-		// Connect to the location services client
 		locationClient.connect();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-
-		Application.getConfigHelper().fetchConfigIfNeeded();
-
-		// Get the latest search distance preference
-		radius = Application.getSearchDistance();
-		// Checks the last saved location to show cached data if it's
-		// available
-		if (lastLocation != null) {
-			LatLng myLatLng = new LatLng(lastLocation.getLatitude(),
-					lastLocation.getLongitude());
-			// If the search distance preference has been changed, move
-			// map to new bounds.
-			if (lastRadius != radius) {
-				updateZoom(myLatLng);
-			}
-			// Update the circle map
-			updateCircle(myLatLng);
-		}
-		// Save the current radius
-		lastRadius = radius;
-		// Query for the latest data to update the views.
-		doMapQuery();
+		updateRadius();
 	}
 
 	/*
@@ -575,6 +548,7 @@ public class MainActivity extends Activity implements LocationListener,
 	 */
 	@Override
 	public void onConnected(Bundle bundle) {
+		Log.d(Application.APPTAG, "onConnected");
 		if (Application.APPDEBUG) {
 			Log.d("Connected to location services", Application.APPTAG);
 		}
@@ -600,15 +574,12 @@ public class MainActivity extends Activity implements LocationListener,
 	public void onConnectionFailed(ConnectionResult connectionResult) {
 		if (connectionResult.hasResolution()) {
 			try {
-
 				// Start an Activity that tries to resolve the error
 				connectionResult.startResolutionForResult(this,
 						CONNECTION_FAILURE_RESOLUTION_REQUEST);
 			} catch (IntentSender.SendIntentException e) {
 
 				if (Application.APPDEBUG) {
-					// Thrown if Google Play services canceled the original
-					// PendingIntent
 					Log.d(Application.APPTAG,
 							"An error occurred when connecting to location services.",
 							e);
@@ -648,7 +619,8 @@ public class MainActivity extends Activity implements LocationListener,
 
 		// Update map radius indicator
 		updateCircle(myLatLng);
-		doMapQuery();
+		userQuery();
+		populateMap();
 	}
 
 	@Override
@@ -686,6 +658,42 @@ public class MainActivity extends Activity implements LocationListener,
 			}
 			break;
 		}
+	}
+
+	private List<ParseUser> userQuery() {
+		// TODO:fix!
+		Log.d(Application.APPTAG, "userQuery");
+		Location myLoc = (currentLocation == null) ? lastLocation
+				: currentLocation;
+
+		if (myLoc == null) {
+			return null;
+		}
+		final ParseGeoPoint myPoint = LocationHelper
+				.geoPointFromLocation(myLoc);
+		// Create the User query
+		ParseQuery<ParseUser> mapQuery = ParseUser.getQuery();
+		// Set up additional query filters
+		mapQuery.whereWithinMiles("location", myPoint, radius);
+		mapQuery.whereNotEqualTo("username", mUser.getUsername());
+		mapQuery.whereEqualTo("status", true);
+		mapQuery.whereContainedIn("interestList", mUser.getList("interestList"));
+		mapQuery.orderByAscending("username");
+		mapQuery.setLimit(MAX_SEARCH_RESULTS);
+		mapQuery.findInBackground(new FindCallback<ParseUser>() {
+			@Override
+			public void done(List<ParseUser> objects, ParseException e) {
+				if (e != null) {
+					if (Application.APPDEBUG) {
+						Log.d(Application.APPTAG,
+								"An error occurred while querying.", e);
+					}
+					return;
+				} else
+					mUserList = objects;
+			}
+		});
+		return mUserList;
 	}
 
 	private void loadUserMenu() {
@@ -757,6 +765,9 @@ public class MainActivity extends Activity implements LocationListener,
 			}
 		});
 
+		Log.d(Application.APPTAG, "contacts size:" + contacts.size());
+		if (contacts == null)
+			contacts = userQuery();
 		if (userData == null)
 			getUserImages(contacts);
 
@@ -788,12 +799,13 @@ public class MainActivity extends Activity implements LocationListener,
 			@Override
 			public void onCameraChange(CameraPosition position) {
 				// When the camera changes, update the query
-				doMapQuery();
+				populateMap();
 			}
 		});
 	}
 
 	private void getUserImages(List<ParseUser> contacts) {
+
 		// Create the array
 		userData = new ArrayList<User>();
 
@@ -885,7 +897,6 @@ public class MainActivity extends Activity implements LocationListener,
 		userQuery.whereEqualTo("username", user);
 		userQuery.getFirstInBackground(new GetCallback<ParseUser>() {
 
-			@SuppressWarnings("static-access")
 			@Override
 			public void done(ParseUser user, ParseException e) {
 
@@ -898,7 +909,7 @@ public class MainActivity extends Activity implements LocationListener,
 						try {
 							obj = new JSONObject();
 							obj.put("alert",
-									"Hi! You receive a friend request.");
+									"Hi! You received a task invitation.");
 							obj.put("action",
 									"com.example.communityanimator.UPDATE_STATUS");
 							obj.put("customdata", mUser.getUsername() + "/"
@@ -915,15 +926,15 @@ public class MainActivity extends Activity implements LocationListener,
 							push.sendInBackground();
 
 							Toast.makeText(getApplicationContext(),
-									"Friend Request sent!", Toast.LENGTH_LONG)
-									.show();
+									"You sent a task invitation successfuly!",
+									Toast.LENGTH_LONG).show();
 						} catch (JSONException ex) {
 							ex.printStackTrace();
 						}
 
 					} else {
 						Toast.makeText(getApplicationContext(),
-								"This contact is not animated to chat!",
+								"This person is not animated to start a task!",
 								Toast.LENGTH_LONG).show();
 					}
 				} else {
@@ -1010,10 +1021,9 @@ public class MainActivity extends Activity implements LocationListener,
 	/*
 	 * Set up the query to update the map view
 	 */
-	private void doMapQuery() {
-		Log.d(Application.APPTAG, "doMapQuery!");
+	private void populateMap() {
+		Log.d(Application.APPTAG, "populateMap!");
 
-		final int myUpdateNumber = ++mostRecentMapUpdate;
 		Location myLoc = (currentLocation == null) ? lastLocation
 				: currentLocation;
 		// If location info isn't available, clean up any existing markers
@@ -1021,109 +1031,120 @@ public class MainActivity extends Activity implements LocationListener,
 			LocationHelper.cleanUpMarkers(new HashSet<String>());
 			return;
 		}
-
 		final ParseGeoPoint myPoint = LocationHelper
 				.geoPointFromLocation(myLoc);
-		// Create the map Parse query
-		ParseQuery<ParseUser> mapQuery = ParseUser.getQuery();
-		// Set up additional query filters
-		mapQuery.whereWithinMiles("location", myPoint, MAX_SEARCH_DISTANCE);
-		mapQuery.whereNotEqualTo("username", mUser.getUsername());
-		mapQuery.whereContainedIn("interestList", mUser.getList("interestList"));
-		mapQuery.orderByAscending("username");
-		mapQuery.setLimit(MAX_SEARCH_RESULTS);
-		mapQuery.findInBackground(new FindCallback<ParseUser>() {
-			@Override
-			public void done(List<ParseUser> objects, ParseException e) {
-				if (e != null) {
-					if (Application.APPDEBUG) {
-						Log.d(Application.APPTAG,
-								"An error occurred while querying.", e);
-					}
-					return;
-				}
-				/*
-				 * Make sure we're processing results from the most recent
-				 * update, in case there may be more than one in progress.
-				 */
-				if (myUpdateNumber != mostRecentMapUpdate) {
-					return;
-				}
-				// Load contacts arraylist
-				contacts = objects;
-				// Initialize contacts list
-				initializeList();
-				// Contacts to show on the map
-				Set<String> toKeep = new HashSet<String>();
-				// Loop through the results of the search
-				for (ParseUser user : objects) {
-					// Add this contact to the list of map pins to keep
-					toKeep.add(user.getObjectId());
-					// Check for an existing marker for this contact
-					Marker oldMarker = mapMarkers.get(user.getObjectId());
-					// Set up the map marker's location
-					MarkerOptions markerOpts = new MarkerOptions()
-							.position(new LatLng(user.getParseGeoPoint(
-									"location").getLatitude(), user
-									.getParseGeoPoint("location")
-									.getLongitude()));
-					// Set up the marker properties based on if it is within the
-					// search radius
-					if (user.getParseGeoPoint("location").distanceInMilesTo(
-							myPoint) > radius) {
-						// Check for an existing out of range marker
-						if (oldMarker != null) {
-							if (oldMarker.getSnippet() == null) {
-								// Out of range marker already exists, skip
-								// adding it
-								continue;
-							} else {
-								// Marker now out of range, needs to be
-								// refreshed
-								oldMarker.remove();
-							}
-						}
-						markerOpts = markerOpts
-								.title(getResources().getString(
-										R.string.post_out_of_range))
-								.icon(BitmapDescriptorFactory
-										.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+		final int myUpdateNumber = ++mostRecentMapUpdate;
+
+		if (myUpdateNumber != mostRecentMapUpdate) {
+			return;
+		}
+		// Load contacts arraylist
+		if (mUserList == null) {
+			// userQuery();
+			Toast.makeText(getApplicationContext(), "No avaiable contacts.",
+					Toast.LENGTH_LONG).show();
+			return;
+		} else {
+			contacts = mUserList;
+			// Initialize contacts list
+			initializeList();
+		}
+		// Contacts to show on the map
+		Set<String> toKeep = new HashSet<String>();
+		// Loop through the results of the search
+		for (ParseUser user : mUserList) {
+			// Add this contact to the list of map pins to keep
+			toKeep.add(user.getObjectId());
+			// Check for an existing marker for this contact
+			Marker oldMarker = mapMarkers.get(user.getObjectId());
+			// Set up the map marker's location
+			MarkerOptions markerOpts = new MarkerOptions().position(new LatLng(
+					user.getParseGeoPoint("location").getLatitude(), user
+							.getParseGeoPoint("location").getLongitude()));
+			// Set up the marker properties based on if it is within the
+			// search radius
+			if (user.getParseGeoPoint("location").distanceInMilesTo(myPoint) > radius) {
+				// Check for an existing out of range marker
+				if (oldMarker != null) {
+					if (oldMarker.getSnippet() == null) {
+						// Out of range marker already exists, skip
+						// adding it
+						continue;
 					} else {
-						// Check for an existing in range marker
-						if (oldMarker != null) {
-							if (oldMarker.getSnippet() != null) {
-								// In range marker already exists, skip adding
-								// it
-								continue;
-							} else {
-								// Marker now in range, needs to be refreshed
-								oldMarker.remove();
-							}
-						}
-						// Display a green marker with the contact information
-						String status;
-						if (user.getBoolean("status"))
-							status = "animated";
-						else
-							status = "busy";
-						markerOpts = markerOpts
-								.title(user.getUsername())
-								.snippet(status)
-								.icon(BitmapDescriptorFactory
-										.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-					}
-					// Add a new marker
-					Marker marker = mapFragment.addMarker(markerOpts);
-					mapMarkers.put(user.getObjectId(), marker);
-					if (user.getObjectId().equals(selectedObjectId)) {
-						marker.showInfoWindow();
-						selectedObjectId = null;
+						// Marker now out of range, needs to be
+						// refreshed
+						oldMarker.remove();
 					}
 				}
-				// Clean up old markers.
-				LocationHelper.cleanUpMarkers(toKeep);
+				markerOpts = markerOpts
+						.title(getResources().getString(
+								R.string.post_out_of_range))
+						.icon(BitmapDescriptorFactory
+								.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+			} else {
+				// Check for an existing in range marker
+				if (oldMarker != null) {
+					if (oldMarker.getSnippet() != null) {
+						// In range marker already exists, skip adding
+						// it
+						continue;
+					} else {
+						// Marker now in range, needs to be refreshed
+						oldMarker.remove();
+					}
+				}
+				// Display a green marker with the contact information
+				String status;
+				if (user.getBoolean("status"))
+					status = "animated";
+				else
+					status = "busy";
+				markerOpts = markerOpts
+						.title(user.getUsername())
+						.snippet(status)
+						.icon(BitmapDescriptorFactory
+								.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 			}
-		});
+			// Add a new marker
+			Marker marker = mapFragment.addMarker(markerOpts);
+			mapMarkers.put(user.getObjectId(), marker);
+			if (user.getObjectId().equals(selectedObjectId)) {
+				marker.showInfoWindow();
+				selectedObjectId = null;
+			}
+		}
+		// Clean up old markers.
+		LocationHelper.cleanUpMarkers(toKeep);
+	}
+
+	private void updateRadius() {
+		Log.d(Application.APPTAG, "updateRadius");
+		Application.getConfigHelper().fetchConfigIfNeeded();
+
+		// Get the latest search distance preference
+		radius = Application.getSearchDistance();
+		Log.d(Application.APPTAG, "radius: " + radius);
+		// Checks the last saved location to show cached data if it's
+		// available
+		Log.d(Application.APPTAG, "lastLocation: " + lastLocation);
+		if (lastLocation != null) {
+			LatLng myLatLng = new LatLng(lastLocation.getLatitude(),
+					lastLocation.getLongitude());
+			// If the search distance preference has been changed, move
+			// map to new bounds.
+			if (lastRadius != radius) {
+				updateZoom(myLatLng);
+			}
+			// Update the circle map
+			updateCircle(myLatLng);
+		}
+		// Save the current radius
+		lastRadius = radius;
+		// Query for the latest data to update the views.
+		userQuery();
+		populateMap();
+
 	}
 
 	/*

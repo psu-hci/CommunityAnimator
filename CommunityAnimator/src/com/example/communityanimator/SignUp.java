@@ -2,31 +2,42 @@ package com.example.communityanimator;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.text.Html;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.communityanimator.scenarios.InterestExpandableListActivity;
 import com.example.communityanimator.scenarios.TaskExpandableListActivity;
 import com.example.communityanimator.util.Application;
+import com.example.communityanimator.util.ConfigHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
@@ -35,30 +46,33 @@ import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 
-public class SignUp extends Activity implements
+public class SignUp extends Activity implements OnItemSelectedListener,
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 
 	private static int RESULT_LOAD_IMAGE = 1;
 	private String selectedImagePath;
 
-	CategoriesAdapter dataAdapter = null;
 	ParseUser user;
 	EditText usernameEditText, passwordEditText, dateEditText,
 			occupationEditText, emailEditText;
 	ImageView profileImage;
-	byte[] image;
+	byte[] image = null;
 	LocationClient mLocationClient;
 	Location location;
-	String view;
+	String genderSelected;
 	TextView task, interest;
+	Spinner genderSpinner;
+	ArrayList<String> interestList, taskList;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.user_profile);
+		Log.d(Application.APPTAG, "onCreate");
 
 		// Setup SignUp form
 		usernameEditText = (EditText) findViewById(R.id.NameET);
@@ -69,10 +83,36 @@ public class SignUp extends Activity implements
 		task = (TextView) findViewById(R.id.taskList);
 		interest = (TextView) findViewById(R.id.interestList);
 		profileImage = (ImageView) findViewById(R.id.ProfPic);
+		interestList = new ArrayList<String>();
+		taskList = new ArrayList<String>();
+
+		// Gender Spinner
+		genderSpinner = (Spinner) findViewById(R.id.gender);
+		String[] op = { "Male", "Female", "Select your gender" };
+		final int listsize = op.length - 1;
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_item, op) {
+			@Override
+			public int getCount() {
+				return (listsize); // Truncate the list
+			}
+		};
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		genderSpinner.setAdapter(adapter);
+
+		genderSpinner.setSelection(listsize);
+		genderSpinner.setOnItemSelectedListener(this);
 
 		Intent i = getIntent();
-		if (i.hasExtra("MainView")) {
-			view = "MainView";
+		if (i.hasExtra("MainView") || i.hasExtra("FacebookUser")
+				|| i.hasExtra("TwitterUser")) {
+			profileView();
+		}
+
+		Bundle bundle = getIntent().getExtras();
+		if (bundle != null) {
+			interestList = bundle.getStringArrayList("interests");
+			taskList = bundle.getStringArrayList("tasks");
 		}
 
 		task.setOnClickListener(new View.OnClickListener() {
@@ -82,7 +122,6 @@ public class SignUp extends Activity implements
 				Intent i = new Intent(SignUp.this,
 						TaskExpandableListActivity.class);
 				startActivity(i);
-
 			}
 		});
 
@@ -90,11 +129,9 @@ public class SignUp extends Activity implements
 
 			@Override
 			public void onClick(View v) {
-
 				Intent i = new Intent(SignUp.this,
 						InterestExpandableListActivity.class);
 				startActivity(i);
-
 			}
 		});
 
@@ -104,6 +141,7 @@ public class SignUp extends Activity implements
 			@Override
 			public void onClick(View v) {
 				// Open Gallery
+				// TODO:Limit the image size
 				Intent intent = new Intent();
 				intent.setType("image/*");
 				intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -119,7 +157,9 @@ public class SignUp extends Activity implements
 			@Override
 			public void onClick(View v) {
 				displayCurrentLocation();
-				signup();
+				attempSignup();
+				// Clear previous Preference
+				ConfigHelper.clearPreferences(getApplicationContext());
 			}
 		});
 
@@ -128,9 +168,15 @@ public class SignUp extends Activity implements
 	}
 
 	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int position,
+			long id) {
+		genderSpinner.setSelection(position);
+		genderSelected = (String) genderSpinner.getSelectedItem();
+	}
+
+	@Override
 	protected void onStart() {
 		super.onStart();
-		// Connect the client.
 		mLocationClient.connect();
 	}
 
@@ -138,6 +184,95 @@ public class SignUp extends Activity implements
 	protected void onStop() {
 		mLocationClient.disconnect();
 		super.onStop();
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		Log.d(Application.APPTAG, "onResume");
+		SharedPreferences preferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		String name = preferences.getString("Name", "");
+		if (!name.equalsIgnoreCase("")) {
+			usernameEditText.setText(name);
+		}
+		String password = preferences.getString("Password", "");
+		if (!password.equalsIgnoreCase("")) {
+			passwordEditText.setText(password);
+		}
+		String date = preferences.getString("Date", "");
+		if (!date.equalsIgnoreCase("")) {
+			dateEditText.setText(date);
+		}
+		String occupation = preferences.getString("Occupation", "");
+		if (!occupation.equalsIgnoreCase("")) {
+			occupationEditText.setText(occupation);
+		}
+		String email = preferences.getString("Email", "");
+		if (!email.equalsIgnoreCase("")) {
+			emailEditText.setText(email);
+		}
+		String gender = preferences.getString("Gender", "");
+		if (!gender.equalsIgnoreCase("")) {
+			genderSpinner.setSelection(gender.indexOf(gender));
+		}
+
+		String interest = preferences.getString("Interest", "");
+		// Log.d(Application.APPTAG, "received interest: " + interest);
+		if (!interest.equalsIgnoreCase("")) {
+			List<String> myList = new ArrayList<String>();
+			Collections.addAll(myList, interest.split("\\s*,\\s*"));
+			interestList = (ArrayList<String>) myList;
+			// Log.d(Application.APPTAG, "final interest: " + interestList);
+		}
+
+		String task = preferences.getString("Task", "");
+		if (!task.equalsIgnoreCase("")) {
+			List<String> myList = new ArrayList<String>();
+			Collections.addAll(myList, task.split("\\s*,\\s*"));
+			taskList = (ArrayList<String>) myList;
+		}
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		Log.d(Application.APPTAG, "onPause");
+		// Store values between instances here
+		SharedPreferences preferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		SharedPreferences.Editor editor = preferences.edit();
+		String strName = usernameEditText.getText().toString();
+		String strPassword = passwordEditText.getText().toString();
+		String strDate = dateEditText.getText().toString();
+		String strOccupation = occupationEditText.getText().toString();
+		String strEmail = emailEditText.getText().toString();
+		String strGender = (String) genderSpinner.getSelectedItem();
+
+		if (interestList != null) {
+			String strInterest = interestList.toString();
+			// Log.d(Application.APPTAG, "before interest: " + strInterest);
+			strInterest = strInterest.replace("[", "").replace("]", "");
+			strInterest.trim();
+			// Log.d(Application.APPTAG, "after interest: " + strInterest);
+			editor.putString("Interest", strInterest);
+		}
+
+		if (taskList != null) {
+			String strTask = taskList.toString();
+			strTask = strTask.replace("[", "").replace("]", "");
+			strTask.trim();
+			editor.putString("Task", strTask);
+		}
+
+		editor.putString("Name", strName);
+		editor.putString("Password", strPassword);
+		editor.putString("Date", strDate);
+		editor.putString("Occupation", strOccupation);
+		editor.putString("Email", strEmail);
+		editor.putString("Gender", strGender);
+		// Commit to storage
+		editor.commit();
 	}
 
 	@Override
@@ -170,8 +305,6 @@ public class SignUp extends Activity implements
 		@SuppressWarnings("deprecation")
 		Cursor cursor = managedQuery(uri, projection, null, null, null);
 		if (cursor != null) {
-			// HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
-			// THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
 			int column_index = cursor
 					.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
 			cursor.moveToFirst();
@@ -180,155 +313,240 @@ public class SignUp extends Activity implements
 			return null;
 	}
 
-	private void signup() {
+	private void clearErrors() {
+		usernameEditText.setError(null);
+		passwordEditText.setError(null);
+		dateEditText.setError(null);
+		occupationEditText.setError(null);
+		emailEditText.setError(null);
+	}
+
+	private void attempSignup() {
+
+		clearErrors();
 
 		String username = usernameEditText.getText().toString().trim();
 		String password = passwordEditText.getText().toString().trim();
 		String date = dateEditText.getText().toString().trim();
 		String occupation = occupationEditText.getText().toString().trim();
 		String email = emailEditText.getText().toString().trim();
-		String gender = null;
 
-		// Validate the sign up data
+		boolean cancel = false;
+		View focusView = null;
+
+		if (TextUtils.isEmpty(username)) {
+			usernameEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This field is required.</font>"));
+			focusView = usernameEditText;
+			cancel = true;
+		}
+		if (TextUtils.isEmpty(password)) {
+			passwordEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This field is required.</font>"));
+			focusView = passwordEditText;
+			cancel = true;
+		} else if (password.length() < 4) {
+			passwordEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This password must be at least 5 characters long.</font>"));
+			focusView = passwordEditText;
+			cancel = true;
+		}
+		if (TextUtils.isEmpty(email)) {
+			emailEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This field is required.</font>"));
+			focusView = emailEditText;
+			cancel = true;
+		} else if (!emailValidator(email)) {
+			emailEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This email address is invalid.</font>"));
+			focusView = emailEditText;
+			cancel = true;
+		}
+		if (TextUtils.isEmpty(date)) {
+			dateEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This field is required.</font>"));
+			focusView = dateEditText;
+			cancel = true;
+		}
+		if (TextUtils.isEmpty(occupation)) {
+			occupationEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This field is required.</font>"));
+			focusView = occupationEditText;
+			cancel = true;
+		}
+		if (cancel) {
+			focusView.requestFocus();
+		} else {
+			if (verifyFields()) {
+				signUp(username.toLowerCase(Locale.getDefault()), password,
+						email, date, occupation);
+			}
+		}
+	}
+
+	private boolean verifyFields() {
+		// TODO:fix!
 		boolean validationError = false;
 		StringBuilder validationErrorMessage = new StringBuilder(
 				getString(R.string.logn_generic_error));
-		// TODO: verify duplicate username
-		if (username.length() == 0) {
+		if (interestList.size() == 0) {
 			validationError = true;
 			validationErrorMessage
-					.append(getString(R.string.error_field_required));
-		}
-		if (password.length() == 0) {
-			validationError = true;
-			validationErrorMessage
-					.append(getString(R.string.error_field_required));
-		}
-		if (password.length() < 5) {
-			validationError = true;
-			validationErrorMessage
-					.append(getString(R.string.error_invalid_password));
+					.append(getString(R.string.error_interest_required));
 		}
 
-		if (date.length() == 0) {
+		if (taskList.size() == 0) {
 			validationError = true;
 			validationErrorMessage
-					.append(getString(R.string.error_field_required));
+					.append(getString(R.string.error_task_required));
 		}
 
-		if (occupation.length() == 0) {
-			validationError = true;
-			validationErrorMessage
-					.append(getString(R.string.error_field_required));
-		}
-
-		if (email.length() == 0) {
-			validationError = true;
-			validationErrorMessage
-					.append(getString(R.string.error_field_required));
-		}
-		if (!emailValidator(email)) {
-			validationError = true;
-			validationErrorMessage
-					.append(getString(R.string.error_invalid_email));
-		}
-
-		// if (male.isChecked()) {
-		// gender = "male";
-		// } else {
-		// gender = "female";
-		// }
-
-		// If there is a validation error, display the error
 		if (validationError) {
 			Toast.makeText(SignUp.this, validationErrorMessage.toString(),
 					Toast.LENGTH_LONG).show();
-			return;
-		}
+			return false;
+		} else
+			return true;
+	}
 
+	private void signUp(String username, String password, String email,
+			String date, String occupation) {
 		// Set up a progress dialog
 		final ProgressDialog dialog = new ProgressDialog(SignUp.this);
 		dialog.setMessage(getString(R.string.progress_signUp));
 		dialog.show();
 
-		// Set up a new Parse user
-		user = new ParseUser();
-		user.setUsername(username);
-		user.setPassword(password);
-		user.put("dateBirth", date);
-		user.put("occupation", occupation);
-		user.put("gender", gender);
-		user.put("email", email);
-		// default values
-		user.put("reminder", true);
-		user.put("status", false);
-		user.put("view", true);
-		user.put("distance", 0);
+		ParseUser currentUser = ParseUser.getCurrentUser();
+		if (currentUser != null) {
+			currentUser.setPassword(password);
+			currentUser.put("dateBirth", date);
+			currentUser.put("occupation", occupation);
+			currentUser.put("gender", genderSelected);
+			currentUser.put("email", email);
+			// default values
+			currentUser.put("reminder", true);
+			currentUser.put("status", false);
+			currentUser.put("view", true);
+			currentUser.put("distance", 0);
+			currentUser.put("chatting", false);
 
-		// save user location
-		if (location != null) {
-			ParseGeoPoint point = new ParseGeoPoint(location.getLatitude(),
-					location.getLongitude());
-			user.put("location", point);
-		} else {
-			displayCurrentLocation();
-		}
-
-		// Get user interests
-		CheckBox cb;
-		ArrayList<String> interests = new ArrayList<String>();
-		// TODO:verify this listview.getchildat and listview.getchildcount
-		// for (int x = 0; x < listView.getChildCount(); x++) {
-		// cb = (CheckBox) listView.getChildAt(x).findViewById(R.id.checkBox1);
-		//
-		// if (cb.isChecked()) {
-		// interests.add(ob.get(x).getObjectId());
-		// }
-		// }
-		// Add interest list in current user
-		user.put("interestList", interests);
-
-		// Verify if the user uploaded an image
-		if (image.length != 0) {
-			Log.d(Application.APPTAG, "entrou image not null!!");
-			user.put("image", true);
-			// Create the ParseFile to upload image
-			ParseFile file = new ParseFile(user.getUsername() + ".png", image);
-			// Upload the image into Parse Cloud
-			file.saveInBackground();
-			// Create a New Class called "ImageUpload" in Parse
-			ParseObject imgupload = new ParseObject("imageUpload");
-			// Create a column named "ImageName" and set the string
-			imgupload.put("imageUser", username);
-			// Create a column named "ImageName" and set the string
-			imgupload.put("imageName", file.getName());
-			// Create a column named "ImageFile" and insert the image
-			imgupload.put("imageFile", file);
-			// Create the class and the columns
-			imgupload.saveInBackground();
-		} else {
-			user.put("image", false);
-		}
-
-		// Call the Parse signup method
-		user.signUpInBackground(new SignUpCallback() {
-			@Override
-			public void done(ParseException e) {
-				dialog.dismiss();
-				if (e != null) {
-					// Show the error message
-					Toast.makeText(SignUp.this, e.getMessage(),
-							Toast.LENGTH_LONG).show();
-				} else {
-					// Start an intent for the dispatch activity
-					Intent intent = new Intent(SignUp.this,
-							DispatchActivity.class);
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
-							| Intent.FLAG_ACTIVITY_NEW_TASK);
-					startActivity(intent);
-				}
+			// save user location
+			if (location != null) {
+				ParseGeoPoint point = new ParseGeoPoint(location.getLatitude(),
+						location.getLongitude());
+				currentUser.put("location", point);
+			} else {
+				displayCurrentLocation();
 			}
-		});
+
+			currentUser.put("interestList", interestList);
+			currentUser.put("taskList", taskList);
+
+			// Verify if the user uploaded an image
+			if (image == null) {
+				currentUser.put("image", false);
+			} else {
+				Log.d(Application.APPTAG, "entrou image not null!!");
+				currentUser.put("image", true);
+				ParseFile file = new ParseFile(user.getUsername() + ".png",
+						image);
+				file.saveInBackground();
+				ParseObject imgupload = new ParseObject("imageUpload");
+				imgupload.put("imageUser", username);
+				imgupload.put("imageName", file.getName());
+				imgupload.put("imageFile", file);
+				imgupload.saveInBackground();
+			}
+
+			// Call the Parse update current user method
+			currentUser.saveInBackground(new SaveCallback() {
+
+				@Override
+				public void done(ParseException e) {
+					if (e != null) {
+						// Show the error message
+						Toast.makeText(SignUp.this, e.getMessage(),
+								Toast.LENGTH_LONG).show();
+					} else {
+						// Start an intent for the dispatch activity
+						Intent intent = new Intent(SignUp.this,
+								DispatchActivity.class);
+						intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+								| Intent.FLAG_ACTIVITY_NEW_TASK);
+						startActivity(intent);
+					}
+				}
+			});
+		} else {
+			// Set up a new Parse user
+			user = new ParseUser();
+			user.setUsername(username);
+			user.setPassword(password);
+			user.put("dateBirth", date);
+			user.put("occupation", occupation);
+			user.put("gender", genderSelected);
+			user.put("email", email);
+			// default values
+			user.put("reminder", true);
+			user.put("status", false);
+			user.put("view", true);
+			user.put("distance", 0);
+			user.put("chatting", false);
+
+			// save user location
+			if (location != null) {
+				ParseGeoPoint point = new ParseGeoPoint(location.getLatitude(),
+						location.getLongitude());
+				user.put("location", point);
+			} else {
+				displayCurrentLocation();
+			}
+
+			user.put("interestList", interestList);
+			user.put("taskList", taskList);
+
+			// Verify if the user uploaded an image
+			if (image == null) {
+				user.put("image", false);
+			} else {
+				user.put("image", true);
+				ParseFile file = new ParseFile(user.getUsername() + ".png",
+						image);
+				file.saveInBackground();
+				ParseObject imgupload = new ParseObject("imageUpload");
+				imgupload.put("imageUser", username);
+				imgupload.put("imageName", file.getName());
+				imgupload.put("imageFile", file);
+				imgupload.saveInBackground();
+			}
+
+			// Call the Parse signup method
+			user.signUpInBackground(new SignUpCallback() {
+				@Override
+				public void done(ParseException e) {
+					dialog.dismiss();
+					if (e != null) {
+						// Show the error message
+						Toast.makeText(SignUp.this, e.getMessage(),
+								Toast.LENGTH_LONG).show();
+					} else {
+						// Start an intent for the dispatch activity
+						Intent intent = new Intent(SignUp.this,
+								DispatchActivity.class);
+						intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+								| Intent.FLAG_ACTIVITY_NEW_TASK);
+						startActivity(intent);
+					}
+				}
+			});
+		}
 	}
 
 	// Show user profile
@@ -349,28 +567,12 @@ public class SignUp extends Activity implements
 		dateEditText.setText(date);
 		occupationEditText.setText(occupation);
 		emailEditText.setText(email);
+		Log.d(Application.APPTAG, "gender: " + gender);
+		if (gender == null) {
+			genderSpinner.setSelection(2);
+		} else
+			genderSpinner.setSelection(gender.indexOf(gender));
 
-		// if (gender.equalsIgnoreCase("male")) {
-		// male.setChecked(true);
-		// } else {
-		// female.setChecked(true);
-		// }
-
-		CheckBox cb;
-		// @SuppressWarnings("unchecked")
-		// ArrayList<String> userInterest = (ArrayList<String>) user
-		// .get("interestList");
-		//
-		// for (int i = 0; i < userInterest.size(); i++) {
-		// for (int j = 0; j < listView.getCount(); j++) {
-		//
-		// if (userInterest.get(i).equals(ob.get(j).getObjectId())) {
-		// cb = (CheckBox) listView.getChildAt(j).findViewById(
-		// R.id.checkBox1);
-		// cb.setChecked(true);
-		// }
-		// }
-		// }
 	}
 
 	/**
@@ -415,6 +617,13 @@ public class SignUp extends Activity implements
 		// Display the connection status
 		Toast.makeText(this, "Disconnected. Please re-connect.",
 				Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> parent) {
+
+		Toast.makeText(SignUp.this, "Please, select your gender.",
+				Toast.LENGTH_LONG).show();
 	}
 
 }

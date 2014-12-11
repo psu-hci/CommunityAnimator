@@ -1,20 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
-    android:orientation="vertical" >
-
-    <ExpandableListView
-        android:id="@+id/expandableList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" 
-        android:divider="@android:color/darker_gray"/>
+    android:background="@android:color/white" >
 
     <TextView
-        android:id="@+id/android:empty"
+        android:id="@+id/textTitle"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/no_items" />
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-</LinearLayout>
+    <View
+        android:id="@+id/headerDivider"
+        android:layout_width="wrap_content"
+        android:layout_height="2dp"
+        android:layout_below="@id/textTitle"
+        android:layout_marginTop="10dp"
+        android:background="@color/orange" />
+
+    <Button
+        android:id="@+id/btn_SaveChoices"
+        style="@style/ButtonAppTheme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="@string/ok" />
+
+    <LinearLayout
+        android:id="@+id/expandableLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/btn_SaveChoices"
+        android:layout_below="@id/headerDivider"
+        android:orientation="vertical" >
+
+        <ExpandableListView
+            android:id="@+id/android:list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="@android:color/darker_gray" />
+    </LinearLayout>
+
+</RelativeLayout>

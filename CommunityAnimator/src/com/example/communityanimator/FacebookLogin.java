@@ -2,12 +2,15 @@ package com.example.communityanimator;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.example.communityanimator.util.Application;
 import com.facebook.FacebookRequestError;
 import com.facebook.Request;
 import com.facebook.Response;
@@ -18,13 +21,30 @@ import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 public class FacebookLogin extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+		// GET FACEBOOK KEY HASH
+		// try {
+		// PackageInfo info = getPackageManager().getPackageInfo(
+		// "com.example.communityanimator",
+		// PackageManager.GET_SIGNATURES);
+		// for (Signature signature : info.signatures) {
+		// MessageDigest md = MessageDigest.getInstance("SHA");
+		// md.update(signature.toByteArray());
+		// Log.d("KeyHash:",
+		// Base64.encodeToString(md.digest(), Base64.DEFAULT));
+		// }
+		// } catch (NameNotFoundException e) {
+		//
+		// } catch (NoSuchAlgorithmException e) {
+		//
+		// }
+
 		// Initializing Parse SDK
 		onCreateParse();
 		// Calling ParseAnalytics to see Analytics of our app
@@ -40,20 +60,22 @@ public class FacebookLogin extends Activity {
 
 	private void onLoginButtonClicked() {
 
-		List<String> permissions = Arrays.asList("public_profile", "user_name",
-				"user_gender", "user_email", "user_birthday", "user_location");
+		List<String> permissions = Arrays.asList("public_profile");
 		ParseFacebookUtils.logIn(permissions, FacebookLogin.this,
 				new LogInCallback() {
 					@Override
 					public void done(ParseUser user, ParseException err) {
 						if (user != null) {
 							if (user.isNew()) {
-								// set favorites as null, or mark it as empty
-								// somehow
 								makeMeRequest();
 							} else {
 								finishActivity();
 							}
+						} else {
+							Toast.makeText(
+									getApplicationContext(),
+									"There is no Facebook app or user cancel the account.",
+									Toast.LENGTH_LONG).show();
 						}
 					}
 
@@ -61,7 +83,7 @@ public class FacebookLogin extends Activity {
 	}
 
 	private void makeMeRequest() {
-
+		Log.d(Application.APPTAG, "makeMeRequest");
 		Session session = ParseFacebookUtils.getSession();
 		if (session != null && session.isOpened()) {
 			Request request = Request.newMeRequest(
@@ -70,11 +92,21 @@ public class FacebookLogin extends Activity {
 						@Override
 						public void onCompleted(GraphUser user,
 								Response response) {
-							if (user != null) {
-								ParseUser.getCurrentUser().put("firstName",
-										user.getUsername());
-								ParseUser.getCurrentUser().saveInBackground();
-								finishActivity();
+							ParseUser parseUser = ParseUser.getCurrentUser();
+							if (user != null && parseUser != null
+									&& user.getName().length() > 0) {
+								Log.d(Application.APPTAG, "facebook user: "
+										+ user.getFirstName());
+								parseUser.put("username", user.getFirstName()
+										.toLowerCase(Locale.getDefault()));
+								parseUser.saveInBackground(new SaveCallback() {
+
+									@Override
+									public void done(ParseException arg0) {
+										finishActivity();
+									}
+								});
+
 							} else if (response.getError() != null) {
 								if ((response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_RETRY)
 										|| (response.getError().getCategory() == FacebookRequestError.Category.AUTHENTICATION_REOPEN_SESSION)) {
@@ -97,9 +129,8 @@ public class FacebookLogin extends Activity {
 
 	private void finishActivity() {
 		// Start an intent for the dispatch activity
-		Intent intent = new Intent(FacebookLogin.this, MainActivity.class);
-		// intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
-		// | Intent.FLAG_ACTIVITY_NEW_TASK);
+		Intent intent = new Intent(FacebookLogin.this, SignUp.class);
+		intent.putExtra("FacebookUser", "FacebookUser");
 		startActivity(intent);
 	}
 

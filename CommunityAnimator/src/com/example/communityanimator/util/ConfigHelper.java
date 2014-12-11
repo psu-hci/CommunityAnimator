@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import com.parse.ConfigCallback;
 import com.parse.ParseConfig;
 import com.parse.ParseException;
@@ -59,5 +63,11 @@ public class ConfigHelper {
 	public int getPostMaxCharacterCount() {
 		int value = config.getInt("postMaxCharacterCount", 140);
 		return value;
+	}
+
+	public static void clearPreferences(Context context) {
+		SharedPreferences preferences = PreferenceManager
+				.getDefaultSharedPreferences(context);
+		preferences.edit().clear().commit();
 	}
 }
