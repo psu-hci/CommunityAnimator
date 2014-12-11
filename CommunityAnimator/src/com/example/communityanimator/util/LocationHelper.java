@@ -42,7 +42,6 @@ public class LocationHelper {
 	 * Helper method to get the Parse GEO point representation of a location
 	 */
 	public static ParseGeoPoint geoPointFromLocation(Location loc) {
-		Log.d(Application.APPTAG, "geoPointFromLocation!");
 		return new ParseGeoPoint(loc.getLatitude(), loc.getLongitude());
 	}
 

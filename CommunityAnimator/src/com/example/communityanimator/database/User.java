@@ -2,10 +2,19 @@ package com.example.communityanimator.database;
 
 public class User {
 
+	private String id;
 	private String name;
 	private boolean status;
 	private boolean chatting;
 	private byte[] file;
+
+	public String getObjectId() {
+		return id;
+	}
+
+	public void setObjectId(String value) {
+		this.id = value;
+	}
 
 	public String getUsername() {
 		return name;

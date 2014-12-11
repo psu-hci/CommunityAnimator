@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Color;
@@ -107,7 +106,6 @@ public class MainActivity extends Activity implements LocationListener,
 	private String selectedObjectId;
 	private Location lastLocation;
 	private Location currentLocation;
-	ProgressDialog mProgressDialog;
 
 	// A request to connect to Location Services
 	private LocationRequest locationRequest;
@@ -120,7 +118,6 @@ public class MainActivity extends Activity implements LocationListener,
 	// ListView
 	ListView list;
 	CustomListAdapter adapter;
-	List<ParseUser> contacts;
 	List<ParseObject> listImages;
 	private List<User> userData = null;
 	// Define which view, distance and status the app will show
@@ -161,8 +158,12 @@ public class MainActivity extends Activity implements LocationListener,
 		// load user last definitions from menuoptions
 		loadUserMenu();
 
-		// load contacts as MapView
+		// load contacts as MapView and ListView
 		initializeMap();
+		initializeList();
+
+		// Create the User array
+		userData = new ArrayList<User>();
 
 		final Button menu = (Button) findViewById(R.id.menu);
 		menu.setOnClickListener(new View.OnClickListener() {
@@ -316,6 +317,7 @@ public class MainActivity extends Activity implements LocationListener,
 						// Save status on database
 						mUser.put("status", status);
 						mUser.saveInBackground();
+						updateUserByStatus(); // update users
 						dialog.dismiss();
 					}
 				});
@@ -492,7 +494,7 @@ public class MainActivity extends Activity implements LocationListener,
 														user.getObjectId(),
 														marker);
 												// Load Contacts
-												contacts.add(user);
+												mUserList.add(user);
 												adapter.notifyDataSetChanged();
 											}
 										}
@@ -519,6 +521,7 @@ public class MainActivity extends Activity implements LocationListener,
 
 	@Override
 	protected void onStop() {
+		Log.d(Application.APPTAG, "onStop");
 		// If the client is connected
 		if (locationClient.isConnected()) {
 			stopPeriodicUpdates();
@@ -531,12 +534,14 @@ public class MainActivity extends Activity implements LocationListener,
 
 	@Override
 	protected void onStart() {
+		Log.d(Application.APPTAG, "onStart");
 		super.onStart();
 		locationClient.connect();
 	}
 
 	@Override
 	protected void onResume() {
+		Log.d(Application.APPTAG, "onResume");
 		super.onResume();
 		updateRadius();
 	}
@@ -598,7 +603,9 @@ public class MainActivity extends Activity implements LocationListener,
 	@Override
 	public void onLocationChanged(Location location) {
 		Log.d(Application.APPTAG, "onLocationChanged!");
+
 		currentLocation = location;
+		Log.d(Application.APPTAG, "currentLocation:" + currentLocation);
 		if (lastLocation != null
 				&& LocationHelper.geoPointFromLocation(location)
 						.distanceInMilesTo(
@@ -620,7 +627,6 @@ public class MainActivity extends Activity implements LocationListener,
 		// Update map radius indicator
 		updateCircle(myLatLng);
 		userQuery();
-		populateMap();
 	}
 
 	@Override
@@ -661,12 +667,18 @@ public class MainActivity extends Activity implements LocationListener,
 	}
 
 	private List<ParseUser> userQuery() {
-		// TODO:fix!
 		Log.d(Application.APPTAG, "userQuery");
 		Location myLoc = (currentLocation == null) ? lastLocation
 				: currentLocation;
 
 		if (myLoc == null) {
+			return null;
+		}
+
+		if (!mUser.getBoolean("status")) {
+			Toast.makeText(getApplicationContext(),
+					"You need to be animated to start a task.",
+					Toast.LENGTH_LONG).show();
 			return null;
 		}
 		final ParseGeoPoint myPoint = LocationHelper
@@ -691,9 +703,32 @@ public class MainActivity extends Activity implements LocationListener,
 					return;
 				} else
 					mUserList = objects;
+				if (mUserList == null) {
+					Toast.makeText(getApplicationContext(),
+							"No avaiable contacts.", Toast.LENGTH_LONG).show();
+				} else {
+					populateList();
+					populateMap();
+				}
+
 			}
 		});
 		return mUserList;
+	}
+
+	private void updateUserByStatus() {
+		Log.d(Application.APPTAG, "updateUserByStatus");
+		if (!mUser.getBoolean("status")) {
+
+			clearList();
+			LocationHelper.cleanUpMarkers(new HashSet<String>());
+			Toast.makeText(getApplicationContext(),
+					"You need to be animated to start a task.",
+					Toast.LENGTH_LONG).show();
+		} else {
+			userQuery();
+		}
+
 	}
 
 	private void loadUserMenu() {
@@ -759,22 +794,10 @@ public class MainActivity extends Activity implements LocationListener,
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
 
-				Log.d(Application.APPTAG, "onItemCLick!");
 				TextView name = (TextView) view.findViewById(R.id.contactName);
 				verifyAddorChat(name.getText().toString());
 			}
 		});
-
-		Log.d(Application.APPTAG, "contacts size:" + contacts.size());
-		if (contacts == null)
-			contacts = userQuery();
-		if (userData == null)
-			getUserImages(contacts);
-
-		adapter = new CustomListAdapter(MainActivity.this, userData);
-		list.setVisibility(View.VISIBLE);
-		list.setAdapter(adapter);
-		adapter.notifyDataSetChanged();
 	}
 
 	private void initializeMap() {
@@ -789,7 +812,6 @@ public class MainActivity extends Activity implements LocationListener,
 
 					@Override
 					public void onInfoWindowClick(Marker marker) {
-						Log.d(Application.APPTAG, "onMarkerCLick!");
 						verifyAddorChat(marker.getTitle());
 					}
 				});
@@ -805,10 +827,6 @@ public class MainActivity extends Activity implements LocationListener,
 	}
 
 	private void getUserImages(List<ParseUser> contacts) {
-
-		// Create the array
-		userData = new ArrayList<User>();
-
 		// Locate the class table named "ImageUpload" in Parse.com
 		ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(
 				"imageUpload");
@@ -823,6 +841,7 @@ public class MainActivity extends Activity implements LocationListener,
 							ParseFile fileObject = user
 									.getParseFile("imageFile");
 							User us = new User();
+							us.setObjectId(contacts.get(i).getObjectId());
 							us.setStatus(contacts.get(i).getBoolean("status"));
 							us.setPhotoFile(fileObject.getData());
 							us.setUsername(contacts.get(i)
@@ -834,6 +853,7 @@ public class MainActivity extends Activity implements LocationListener,
 					}
 				} else {
 					User us = new User();
+					us.setObjectId(contacts.get(i).getObjectId());
 					us.setStatus(contacts.get(i).getBoolean("status"));
 					us.setPhotoFile(null);
 					us.setUsername(contacts.get(i).getString("username"));
@@ -1018,6 +1038,39 @@ public class MainActivity extends Activity implements LocationListener,
 		mUser.saveInBackground();
 	}
 
+	private void clearList() {
+		Log.d(Application.APPTAG, "clearList");
+		if (userData != null || !userData.isEmpty()) {
+			userData.clear();
+		}
+		adapter = new CustomListAdapter(MainActivity.this, userData);
+		list.setAdapter(adapter);
+		adapter.notifyDataSetChanged();
+	}
+
+	private void populateList() {
+		Log.d(Application.APPTAG, "populateList");
+
+		Location myLoc = (currentLocation == null) ? lastLocation
+				: currentLocation;
+		// If location info isn't available, clean up any existing items
+		if (myLoc == null) {
+			clearList();
+			return;
+		}
+
+		if (mUserList == null) {
+			Log.d(Application.APPTAG, "mUserList null");
+			return;
+		} else {
+			Log.d(Application.APPTAG, "call RemoteDataTask");
+			getUserImages(mUserList);
+			adapter = new CustomListAdapter(MainActivity.this, userData);
+			list.setAdapter(adapter);
+			adapter.notifyDataSetChanged();
+		}
+	}
+
 	/*
 	 * Set up the query to update the map view
 	 */
@@ -1039,17 +1092,9 @@ public class MainActivity extends Activity implements LocationListener,
 		if (myUpdateNumber != mostRecentMapUpdate) {
 			return;
 		}
-		// Load contacts arraylist
-		if (mUserList == null) {
-			// userQuery();
-			Toast.makeText(getApplicationContext(), "No avaiable contacts.",
-					Toast.LENGTH_LONG).show();
+		if (mUserList == null)
 			return;
-		} else {
-			contacts = mUserList;
-			// Initialize contacts list
-			initializeList();
-		}
+
 		// Contacts to show on the map
 		Set<String> toKeep = new HashSet<String>();
 		// Loop through the results of the search
@@ -1143,7 +1188,8 @@ public class MainActivity extends Activity implements LocationListener,
 		lastRadius = radius;
 		// Query for the latest data to update the views.
 		userQuery();
-		populateMap();
+		// populateMap();
+		// populateList();
 
 	}
 
@@ -1162,7 +1208,7 @@ public class MainActivity extends Activity implements LocationListener,
 					Color.green(baseColor), Color.blue(baseColor)));
 		}
 		mapCircle.setCenter(myLatLng);
-		mapCircle.setRadius(radius); // Convert radius in feet
+		mapCircle.setRadius(radius);
 	}
 
 	/*
@@ -1192,13 +1238,9 @@ public class MainActivity extends Activity implements LocationListener,
 				this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
 		// If Google Play services can provide an error dialog
 		if (errorDialog != null) {
-			// Create a new DialogFragment in which to show the error dialog
 			ErrorDialogFragment errorFragment = new ErrorDialogFragment();
-			// Set the dialog in the DialogFragment
 			errorFragment.setDialog(errorDialog);
-			// Show the error dialog in the DialogFragment
 			errorFragment.show(getFragmentManager(), Application.APPTAG);
 		}
 	}
-
 }

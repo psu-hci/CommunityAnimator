@@ -16,17 +16,25 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.communityanimator.database.User;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
 
 public class CustomListAdapter extends BaseAdapter {
 
 	LayoutInflater mInflater;
 	private List<User> user = null;
 	Context mContext;
+	ParseUser currentUser;
+	boolean friend = false;
 
 	public CustomListAdapter(Context context, List<User> objects) {
 		this.mContext = context;
 		this.user = objects;
 		mInflater = LayoutInflater.from(mContext);
+		currentUser = ParseUser.getCurrentUser();
 
 		Log.d("Adapter", "list size:" + objects.size());
 	}
@@ -81,7 +89,11 @@ public class CustomListAdapter extends BaseAdapter {
 		boolean chatting = user.get(position).getChatting();
 		Log.d("Adapter", "chatting: " + chatting);
 		if (chatting) {
-			holder.add.setImageResource(R.drawable.ic_chat);
+			if (findChatFriends(position)) {
+				holder.add.setImageResource(R.drawable.ic_chat);
+			} else {
+				holder.add.setImageResource(R.drawable.ic_plus);
+			}
 		} else {
 			holder.add.setImageResource(R.drawable.ic_plus);
 		}
@@ -98,6 +110,25 @@ public class CustomListAdapter extends BaseAdapter {
 		}
 
 		return view;
+	}
+
+	private boolean findChatFriends(int location) {
+
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("ParseMessage");
+		query.whereEqualTo("senderId", currentUser.getObjectId());
+		query.whereEqualTo("recipientId", user.get(location).getObjectId());
+		query.findInBackground(new FindCallback<ParseObject>() {
+
+			@Override
+			public void done(List<ParseObject> obj, ParseException e) {
+
+				if (obj != null) {
+					friend = true;
+				} else
+					friend = false;
+			}
+		});
+		return friend;
 	}
 
 	private Bitmap findDensity(Bitmap bmp) {
