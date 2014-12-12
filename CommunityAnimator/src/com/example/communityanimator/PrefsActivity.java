@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -25,7 +26,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import com.parse.ParseUser;
 
@@ -45,15 +45,28 @@ public class PrefsActivity extends PreferenceActivity {
 
 			@Override
 			public boolean onPreferenceClick(Preference preference) {
-				Toast.makeText(
-						getApplicationContext(),
-						"You´re no longer animated. Your location will not appear in the map.",
-						Toast.LENGTH_LONG);
-				ParseUser.getCurrentUser();
-				ParseUser.logOut();
-				Intent intent = new Intent(PrefsActivity.this, Login.class);
-				startActivity(intent);
-				PrefsActivity.this.finish();
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(
+						PrefsActivity.this);
+				builder.setTitle(R.string.logOutTitle)
+						.setMessage(R.string.LogOutMessage)
+						.setCancelable(false)
+						.setPositiveButton(R.string.ok,
+								new DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(DialogInterface dialog,
+											int id) {
+										ParseUser.getCurrentUser();
+										ParseUser.logOut();
+										Intent intent = new Intent(
+												PrefsActivity.this, Login.class);
+										startActivity(intent);
+										PrefsActivity.this.finish();
+									}
+								});
+				AlertDialog alert = builder.create();
+				alert.show();
+
 				return true;
 			}
 		});
@@ -211,18 +224,6 @@ public class PrefsActivity extends PreferenceActivity {
 		public boolean onPreferenceChange(Preference preference, Object value) {
 			String stringValue = value.toString();
 
-			// if (preference instanceof ListPreference) {
-			// // For list preferences, look up the correct display value in
-			// // the preference's 'entries' list.
-			// ListPreference listPreference = (ListPreference) preference;
-			// int index = listPreference.findIndexOfValue(stringValue);
-			//
-			// // Set the summary to reflect the new value.
-			// preference
-			// .setSummary(index >= 0 ? listPreference.getEntries()[index]
-			// : null);
-			//
-			// } else
 			if (preference instanceof RingtonePreference) {
 				// For ringtone preferences, look up the correct display value
 				// using RingtoneManager.

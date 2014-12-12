@@ -127,6 +127,7 @@
     <string name="faqTitle">FAQ</string>
     <string name="contactUsTitle">Contact Us</string>
     <string name="logOutTitle">Log Out</string>
+    <string name="LogOutMessage">You´re no longer animated. Your location will not appear in the map.</string>
 
     <!-- Strings related to help settings -->
     <string name="aboutDialog">About Community Animator</string>
