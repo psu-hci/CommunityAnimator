@@ -60,11 +60,6 @@ public class ConfigHelper {
 		return typedOptions;
 	}
 
-	public int getPostMaxCharacterCount() {
-		int value = config.getInt("postMaxCharacterCount", 140);
-		return value;
-	}
-
 	public static void clearPreferences(Context context) {
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(context);

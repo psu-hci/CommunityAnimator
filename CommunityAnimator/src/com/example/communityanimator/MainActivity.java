@@ -44,7 +44,6 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
@@ -88,6 +87,8 @@ public class MainActivity extends Activity implements LocationListener,
 	// Maximum results returned from a Parse query
 	private static final int MAX_SEARCH_RESULTS = 20;
 
+	private static final double FEET_TO_MILES_VALUE = 5280;
+
 	// Map fragment
 	private GoogleMap mapFragment;
 	LatLngBounds bounds;
@@ -96,8 +97,7 @@ public class MainActivity extends Activity implements LocationListener,
 	private Circle mapCircle;
 
 	// Fields for the map radius in feet
-	private float radius;
-	private float lastRadius;
+	private static float radius;
 
 	// Fields for helping process map and location changes
 	private final Map<String, Marker> mapMarkers = new HashMap<String, Marker>();
@@ -135,7 +135,7 @@ public class MainActivity extends Activity implements LocationListener,
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		radius = Application.getSearchDistance();
-		lastRadius = radius;
+		Log.d(Application.APPTAG, "onCreate radius: " + radius);
 		setContentView(R.layout.activity_main);
 
 		// Create a new global location parameters object
@@ -392,7 +392,7 @@ public class MainActivity extends Activity implements LocationListener,
 						// Save distance on database
 						mUser.put("distance", lv.getCheckedItemPosition());
 						mUser.saveInBackground();
-
+						// Update user distance choice
 						updateRadius();
 						dialog.dismiss();
 					}
@@ -434,12 +434,6 @@ public class MainActivity extends Activity implements LocationListener,
 									Toast.LENGTH_SHORT).show();
 							return;
 						}
-						// Locate user query
-						Location myLoc = (currentLocation == null) ? lastLocation
-								: currentLocation;
-						final ParseGeoPoint myPoint = LocationHelper
-								.geoPointFromLocation(myLoc);
-						// Create the Parse query TODO:check query!
 						ParseQuery<ParseUser> locateQuery = ParseUser
 								.getQuery();
 						locateQuery.whereEqualTo("username", name);
@@ -462,40 +456,29 @@ public class MainActivity extends Activity implements LocationListener,
 													"This person was not found.",
 													Toast.LENGTH_LONG).show();
 										} else {
+											Location myLoc = (currentLocation == null) ? lastLocation
+													: currentLocation;
+											ParseGeoPoint myPoint = LocationHelper
+													.geoPointFromLocation(myLoc);
 											for (ParseUser user : objects) {
-												MarkerOptions markerOpts = new MarkerOptions()
-														.position(new LatLng(
-																user.getParseGeoPoint(
-																		"location")
-																		.getLatitude(),
-																user.getParseGeoPoint(
-																		"location")
-																		.getLongitude()));
-												if (user.getParseGeoPoint(
-														"location")
-														.distanceInMilesTo(
-																myPoint) > radius) {
+												double userDistance = (user
+														.getParseGeoPoint("location")
+														.distanceInMilesTo(myPoint))
+														* FEET_TO_MILES_VALUE;
+												if (userDistance > radius) {
 													Toast.makeText(
 															MainActivity.this,
 															"The person is too far away.",
 															Toast.LENGTH_LONG)
 															.show();
-												} else {
-													markerOpts = markerOpts
-															.title(user
-																	.getUsername())
-															.icon(BitmapDescriptorFactory
-																	.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+												} else if (!user
+														.getBoolean("status")) {
+													Toast.makeText(
+															MainActivity.this,
+															"The person is not animated to task.",
+															Toast.LENGTH_LONG)
+															.show();
 												}
-												// Add a new marker
-												Marker marker = mapFragment
-														.addMarker(markerOpts);
-												mapMarkers.put(
-														user.getObjectId(),
-														marker);
-												// Load Contacts
-												mUserList.add(user);
-												adapter.notifyDataSetChanged();
 											}
 										}
 									}
@@ -521,7 +504,6 @@ public class MainActivity extends Activity implements LocationListener,
 
 	@Override
 	protected void onStop() {
-		Log.d(Application.APPTAG, "onStop");
 		// If the client is connected
 		if (locationClient.isConnected()) {
 			stopPeriodicUpdates();
@@ -534,23 +516,16 @@ public class MainActivity extends Activity implements LocationListener,
 
 	@Override
 	protected void onStart() {
-		Log.d(Application.APPTAG, "onStart");
 		super.onStart();
 		locationClient.connect();
 	}
 
 	@Override
 	protected void onResume() {
-		Log.d(Application.APPTAG, "onResume");
 		super.onResume();
 		updateRadius();
 	}
 
-	/*
-	 * Called by Location Services when the request to connect the client
-	 * finishes successfully. At this point, you can request the current
-	 * location or start periodic updates
-	 */
 	@Override
 	public void onConnected(Bundle bundle) {
 		Log.d(Application.APPTAG, "onConnected");
@@ -561,10 +536,6 @@ public class MainActivity extends Activity implements LocationListener,
 		startPeriodicUpdates();
 	}
 
-	/*
-	 * Called by Location Services if the connection to the location client
-	 * drops because of an error.
-	 */
 	@Override
 	public void onDisconnected() {
 		if (Application.APPDEBUG) {
@@ -572,9 +543,6 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 	}
 
-	/*
-	 * Called by Location Services if the attempt to Location Services fails.
-	 */
 	@Override
 	public void onConnectionFailed(ConnectionResult connectionResult) {
 		if (connectionResult.hasResolution()) {
@@ -591,21 +559,14 @@ public class MainActivity extends Activity implements LocationListener,
 				}
 			}
 		} else {
-			// If no resolution is available, display a dialog to the user with
-			// the error.
 			showErrorDialog(connectionResult.getErrorCode());
 		}
 	}
 
-	/*
-	 * Report location updates to the UI.
-	 */
 	@Override
 	public void onLocationChanged(Location location) {
-		Log.d(Application.APPTAG, "onLocationChanged!");
 
 		currentLocation = location;
-		Log.d(Application.APPTAG, "currentLocation:" + currentLocation);
 		if (lastLocation != null
 				&& LocationHelper.geoPointFromLocation(location)
 						.distanceInMilesTo(
@@ -617,8 +578,6 @@ public class MainActivity extends Activity implements LocationListener,
 		LatLng myLatLng = new LatLng(location.getLatitude(),
 				location.getLongitude());
 		if (!hasSetUpInitialLocation) {
-			// Zoom to the current location.
-			updateZoom(myLatLng);
 			hasSetUpInitialLocation = true;
 		}
 		// Saving new user location
@@ -686,7 +645,8 @@ public class MainActivity extends Activity implements LocationListener,
 		// Create the User query
 		ParseQuery<ParseUser> mapQuery = ParseUser.getQuery();
 		// Set up additional query filters
-		mapQuery.whereWithinMiles("location", myPoint, radius);
+		mapQuery.whereWithinMiles("location", myPoint,
+				(radius / FEET_TO_MILES_VALUE));
 		mapQuery.whereNotEqualTo("username", mUser.getUsername());
 		mapQuery.whereEqualTo("status", true);
 		mapQuery.whereContainedIn("interestList", mUser.getList("interestList"));
@@ -717,7 +677,6 @@ public class MainActivity extends Activity implements LocationListener,
 	}
 
 	private void updateUserByStatus() {
-		Log.d(Application.APPTAG, "updateUserByStatus");
 		if (!mUser.getBoolean("status")) {
 
 			clearList();
@@ -767,15 +726,19 @@ public class MainActivity extends Activity implements LocationListener,
 		switch (distance) {
 		case 0:
 			userDistance.setText("50 feet away");
+			Application.setSearchDistance(availableOptions.get(0));
 			break;
 		case 1:
 			userDistance.setText("100 feet away");
+			Application.setSearchDistance(availableOptions.get(1));
 			break;
 		case 2:
 			userDistance.setText("250 feet away");
+			Application.setSearchDistance(availableOptions.get(2));
 			break;
 		case 3:
 			userDistance.setText("500 feet away");
+			Application.setSearchDistance(availableOptions.get(3));
 			break;
 		default:
 			break;
@@ -821,7 +784,7 @@ public class MainActivity extends Activity implements LocationListener,
 			@Override
 			public void onCameraChange(CameraPosition position) {
 				// When the camera changes, update the query
-				populateMap();
+				updateRadius();
 			}
 		});
 	}
@@ -965,11 +928,6 @@ public class MainActivity extends Activity implements LocationListener,
 		});
 	}
 
-	/*
-	 * Verify that Google Play services is available before making a request.
-	 * 
-	 * @return true if Google Play services is available, otherwise false
-	 */
 	private boolean servicesConnected() {
 		Log.d(Application.APPTAG, "serviceConnected!");
 		// Check that Google Play services is available
@@ -998,27 +956,15 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 	}
 
-	/*
-	 * In response to a request to start updates, send a request to Location
-	 * Services
-	 */
 	private void startPeriodicUpdates() {
 		locationClient.requestLocationUpdates(locationRequest, this);
 	}
 
-	/*
-	 * In response to a request to stop updates, send a request to Location
-	 * Services
-	 */
 	private void stopPeriodicUpdates() {
 		locationClient.removeLocationUpdates(this);
 	}
 
-	/*
-	 * Get the current location
-	 */
 	private Location getLocation() {
-		Log.d(Application.APPTAG, "getLocation!");
 		// If Google Play Services is available
 		if (servicesConnected()) {
 			// Get the current location
@@ -1028,11 +974,7 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 	}
 
-	/*
-	 * Save the user location on database
-	 */
 	private void saveUserLocation(Location location) {
-		// TODO: verify saving user location
 		ParseGeoPoint newPoint = LocationHelper.geoPointFromLocation(location);
 		mUser.put("location", newPoint);
 		mUser.saveInBackground();
@@ -1060,10 +1002,9 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 
 		if (mUserList == null) {
-			Log.d(Application.APPTAG, "mUserList null");
 			return;
 		} else {
-			Log.d(Application.APPTAG, "call RemoteDataTask");
+			clearList();
 			getUserImages(mUserList);
 			adapter = new CustomListAdapter(MainActivity.this, userData);
 			list.setAdapter(adapter);
@@ -1079,7 +1020,6 @@ public class MainActivity extends Activity implements LocationListener,
 
 		Location myLoc = (currentLocation == null) ? lastLocation
 				: currentLocation;
-		// If location info isn't available, clean up any existing markers
 		if (myLoc == null) {
 			LocationHelper.cleanUpMarkers(new HashSet<String>());
 			return;
@@ -1097,7 +1037,6 @@ public class MainActivity extends Activity implements LocationListener,
 
 		// Contacts to show on the map
 		Set<String> toKeep = new HashSet<String>();
-		// Loop through the results of the search
 		for (ParseUser user : mUserList) {
 			// Add this contact to the list of map pins to keep
 			toKeep.add(user.getObjectId());
@@ -1107,9 +1046,9 @@ public class MainActivity extends Activity implements LocationListener,
 			MarkerOptions markerOpts = new MarkerOptions().position(new LatLng(
 					user.getParseGeoPoint("location").getLatitude(), user
 							.getParseGeoPoint("location").getLongitude()));
-			// Set up the marker properties based on if it is within the
-			// search radius
-			if (user.getParseGeoPoint("location").distanceInMilesTo(myPoint) > radius) {
+			double userDistance = (user.getParseGeoPoint("location")
+					.distanceInMilesTo(myPoint)) * FEET_TO_MILES_VALUE;
+			if (userDistance > radius) {
 				// Check for an existing out of range marker
 				if (oldMarker != null) {
 					if (oldMarker.getSnippet() == null) {
@@ -1166,30 +1105,18 @@ public class MainActivity extends Activity implements LocationListener,
 	private void updateRadius() {
 		Log.d(Application.APPTAG, "updateRadius");
 		Application.getConfigHelper().fetchConfigIfNeeded();
-
 		// Get the latest search distance preference
 		radius = Application.getSearchDistance();
-		Log.d(Application.APPTAG, "radius: " + radius);
 		// Checks the last saved location to show cached data if it's
 		// available
-		Log.d(Application.APPTAG, "lastLocation: " + lastLocation);
 		if (lastLocation != null) {
 			LatLng myLatLng = new LatLng(lastLocation.getLatitude(),
 					lastLocation.getLongitude());
-			// If the search distance preference has been changed, move
-			// map to new bounds.
-			if (lastRadius != radius) {
-				updateZoom(myLatLng);
-			}
 			// Update the circle map
 			updateCircle(myLatLng);
 		}
-		// Save the current radius
-		lastRadius = radius;
 		// Query for the latest data to update the views.
 		userQuery();
-		// populateMap();
-		// populateList();
 
 	}
 
@@ -1200,7 +1127,7 @@ public class MainActivity extends Activity implements LocationListener,
 		Log.d(Application.APPTAG, "updateCircle!");
 		if (mapCircle == null) {
 			mapCircle = mapFragment.addCircle(new CircleOptions().center(
-					myLatLng).radius(radius));
+					myLatLng).radius((radius)));
 			int baseColor = Color.DKGRAY;
 			mapCircle.setStrokeColor(baseColor);
 			mapCircle.setStrokeWidth(2);
@@ -1208,24 +1135,7 @@ public class MainActivity extends Activity implements LocationListener,
 					Color.green(baseColor), Color.blue(baseColor)));
 		}
 		mapCircle.setCenter(myLatLng);
-		mapCircle.setRadius(radius);
-	}
-
-	/*
-	 * Zooms the map to show the area of interest based on the search radius
-	 */
-	private void updateZoom(LatLng myLatLng) {
-		Log.d(Application.APPTAG, "updateZoom!");
-		// Get the bounds to zoom
-		bounds = LocationHelper.calculateBoundsWithCenter(myLatLng);
-		mapFragment.setOnCameraChangeListener(new OnCameraChangeListener() {
-			@Override
-			public void onCameraChange(CameraPosition position) {
-				// When the camera changes, update the query
-				mapFragment.animateCamera(CameraUpdateFactory.newLatLngBounds(
-						bounds, 10));
-			}
-		});
+		mapCircle.setRadius((radius));
 	}
 
 	/*
