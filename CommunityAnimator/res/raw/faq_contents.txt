@@ -1,8 +1,12 @@
 <br>
-<h3>question 1?</h3>
-<p>Answer one.</p>
-<h3>question 2?</h3>
-<p>Answer 2.</p>
-<h3>question 3?</h3>
-<p>Answer three.</p>
+<h3>Where and how is my data stored?</h3>
+<p>Our data is stored using a database software called Parse. Data received via this application is aggregated, stored and protected on their servers. For more information about Parse, visit:<i>https://parse.com</i></p>
+<h3>When is my location sharing on/off?</h3>
+<p>Your location is only shared with other Community Animator users when your status is set to <i>Animated</i>. To hide your location from other users, set <i>Animated</i> to <i>Busy</i></p>
+<h3>How do I update my interests?</h3>
+<p>You can click on Profile option and your saved profile will show. You can click on Conversation topics and update your interests.</p>
+<h3>How do I find my friends within the app?</h3>
+<p>If you have logged into Community Animator with your Facebook or Twitter account, your friends who are already using the app will appear as possible connections. Otherwise, users can be found using the Locate function.</p>
+<h3>How do I find my friends within the app?</h3>
+<p>Yes, send an email to <i>hci@ist.psu.edu</i> and we'll review your request as soon as possible. If your suggestion is approved, we will add your category to Community Animator.</p>
 <br>

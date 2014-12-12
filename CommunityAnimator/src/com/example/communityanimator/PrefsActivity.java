@@ -25,6 +25,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import com.parse.ParseUser;
 
@@ -44,10 +45,12 @@ public class PrefsActivity extends PreferenceActivity {
 
 			@Override
 			public boolean onPreferenceClick(Preference preference) {
+				Toast.makeText(
+						getApplicationContext(),
+						"You´re no longer animated. Your location will not appear in the map.",
+						Toast.LENGTH_LONG);
 				ParseUser.getCurrentUser();
 				ParseUser.logOut();
-				// TODO: insert a message
-				// "you´re no longer animated. Your location will not appear in the map."
 				Intent intent = new Intent(PrefsActivity.this, Login.class);
 				startActivity(intent);
 				PrefsActivity.this.finish();
