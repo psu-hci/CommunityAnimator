@@ -248,9 +248,6 @@ public class Login extends Activity {
 		// Setting Dialog Message
 		alertDialog.setMessage(message);
 
-		// Setting alert dialog icon
-		alertDialog.setIcon(R.drawable.fail);
-
 		// Setting OK Button
 		alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 			@Override

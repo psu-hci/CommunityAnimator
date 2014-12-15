@@ -1,6 +1,9 @@
 package com.example.communityanimator;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -22,6 +25,10 @@ public class DispatchActivity extends Activity {
 	}
 
 	private Intent serviceIntent;
+	// flag for Internet connection status
+	Boolean isInternetPresent = false;
+	// Connection detector class
+	ConnectionDetector cd;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,33 +37,67 @@ public class DispatchActivity extends Activity {
 		// Clear previous Preference
 		ConfigHelper.clearPreferences(getApplicationContext());
 
+		// creating connection detector class instance
+		cd = new ConnectionDetector(getApplicationContext());
+
 		serviceIntent = new Intent(getApplicationContext(),
 				MessageService.class);
 
-		// Check if there is current user info
-		if (ParseUser.getCurrentUser() != null) {
+		// get Internet status
+		isInternetPresent = cd.isConnectingToInternet();
+		// check for Internet status
+		if (isInternetPresent) {
 
-			startService(serviceIntent);
-			// Associate the device with a user
-			ParseInstallation installation = ParseInstallation
-					.getCurrentInstallation();
-			installation.put("user", ParseUser.getCurrentUser().getUsername());
-			installation.saveInBackground();
+			// Check if there is current user info
+			if (ParseUser.getCurrentUser() != null) {
 
-			Object reminder = ParseUser.getCurrentUser().getBoolean("reminder");
+				startService(serviceIntent);
+				// Associate the device with a user
+				ParseInstallation installation = ParseInstallation
+						.getCurrentInstallation();
+				installation.put("user", ParseUser.getCurrentUser()
+						.getUsername());
+				installation.saveInBackground();
 
-			// Start an intent for the logged in activity
-			if (reminder.equals(true)) {
-				startActivity(new Intent(this, MainActivity.class));
+				Object reminder = ParseUser.getCurrentUser().getBoolean(
+						"reminder");
+
+				// Start an intent for the logged in activity
+				if (reminder.equals(true)) {
+					startActivity(new Intent(this, MainActivity.class));
+				} else {
+					startActivity(new Intent(this, Login.class));
+				}
+
 			} else {
+				// Start and intent for the logged out activity
 				startActivity(new Intent(this, Login.class));
 			}
-
 		} else {
-			// Start and intent for the logged out activity
-			startActivity(new Intent(this, Login.class));
+			// Internet connection is not present
+			// Ask user to connect to Internet
+			showAlertDialog(DispatchActivity.this, "No Internet Connection",
+					"You don't have internet connection.", false);
 		}
 
+	}
+
+	@SuppressWarnings("deprecation")
+	public void showAlertDialog(Context context, String title, String message,
+			Boolean status) {
+		AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+		alertDialog.setTitle(title);
+		alertDialog.setMessage(message);
+		// Setting OK Button
+		alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				finish();
+			}
+		});
+
+		// Showing Alert Message
+		alertDialog.show();
 	}
 
 	private void findScreenSize() {
