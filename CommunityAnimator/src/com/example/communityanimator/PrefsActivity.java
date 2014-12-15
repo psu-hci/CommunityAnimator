@@ -81,6 +81,16 @@ public class PrefsActivity extends PreferenceActivity {
 			}
 		});
 
+		Preference term = findPreference("term");
+		term.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+
+			@Override
+			public boolean onPreferenceClick(Preference preference) {
+				showTerm();
+				return true;
+			}
+		});
+
 		Preference faq = findPreference("faq");
 		faq.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 
@@ -132,6 +142,18 @@ public class PrefsActivity extends PreferenceActivity {
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.aboutDialog);
+		builder.setView(messageView);
+		builder.create();
+		builder.show();
+	}
+
+	protected void showTerm() {
+		// Inflate the about message contents
+		View messageView = getLayoutInflater().inflate(R.layout.term_dialog,
+				null, false);
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.termTitle);
 		builder.setView(messageView);
 		builder.create();
 		builder.show();
@@ -276,5 +298,12 @@ public class PrefsActivity extends PreferenceActivity {
 				PreferenceManager.getDefaultSharedPreferences(
 						preference.getContext()).getString(preference.getKey(),
 						""));
+	}
+
+	@Override
+	public void onBackPressed() {
+		Intent i = new Intent(getApplicationContext(), MainActivity.class);
+		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(i);
 	}
 }

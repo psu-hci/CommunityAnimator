@@ -57,6 +57,9 @@
                 android:key="about"
                 android:title="@string/aboutTitle" />
             <Preference
+                android:key="term"
+                android:title="@string/termTitle" />
+            <Preference
                 android:key="faq"
                 android:title="@string/faqTitle" />
             <Preference
