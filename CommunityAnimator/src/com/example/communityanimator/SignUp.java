@@ -140,7 +140,6 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 			@Override
 			public void onClick(View v) {
 				// Open Gallery
-				// TODO:Limit the image size
 				Intent intent = new Intent();
 				intent.setType("image/*");
 				intent.setAction(Intent.ACTION_GET_CONTENT);

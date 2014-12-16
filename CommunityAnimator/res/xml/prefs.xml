@@ -38,7 +38,7 @@
         <PreferenceScreen
             android:key="contacts"
             android:title="Contacts" >
-            <EditTextPreference
+            <Preference
                 android:key="email"
                 android:title="@string/tellTitle" />
 
