@@ -34,8 +34,6 @@
                 android:summary="@string/vibrate"
                 android:title="@string/vibrateTitle" >
             </SwitchPreference>
-
-
         </PreferenceScreen>
         <PreferenceScreen
             android:key="contacts"

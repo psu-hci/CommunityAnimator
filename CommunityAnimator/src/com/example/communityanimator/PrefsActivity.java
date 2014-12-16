@@ -23,12 +23,13 @@ import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.preference.SwitchPreference;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
-import com.example.communityanimator.util.Application;
 import com.parse.ParseUser;
 
 public class PrefsActivity extends PreferenceActivity {
@@ -113,6 +114,17 @@ public class PrefsActivity extends PreferenceActivity {
 			}
 		});
 
+		Preference tellFriend = findPreference("email");
+		tellFriend
+				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+
+					@Override
+					public boolean onPreferenceClick(Preference preference) {
+						showEmail();
+						return true;
+					}
+				});
+
 		SwitchPreference vibrate = (SwitchPreference) findPreference("vibrate");
 		vibrate.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 
@@ -178,6 +190,60 @@ public class PrefsActivity extends PreferenceActivity {
 
 	}
 
+	protected void showEmail() {
+
+		View emailView = getLayoutInflater().inflate(
+				R.layout.tellfriend_dialog, null, false);
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.tellTitle);
+		builder.setView(emailView);
+
+		AlertDialog alert = builder.create();
+		alert.show();
+
+		final EditText emailEd = (EditText) emailView
+				.findViewById(R.id.et_friendEmail);
+		Button btnSend = (Button) emailView.findViewById(R.id.btn_sendEmail);
+		btnSend.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				String email = emailEd.getText().toString();
+				if (email.matches("")) {
+					Toast.makeText(PrefsActivity.this,
+							"Please, enter your friend´s email.",
+							Toast.LENGTH_LONG).show();
+					return;
+				}
+
+				ParseUser currentUser = ParseUser.getCurrentUser();
+				String message = "Hey!" + '\n' + " " + "Your friend "
+						+ currentUser.getUsername()
+						+ " want you to know this app." + '\n'
+						+ "You can download it on Google Play Store.";
+
+				Intent intent = new Intent();
+				intent.setType("text / plain");
+				intent.setAction(Intent.ACTION_SEND);
+				intent.putExtra(Intent.EXTRA_EMAIL, new String[] { email });
+				intent.putExtra(Intent.EXTRA_SUBJECT,
+						"Do you know the Community Animator app?");
+				intent.putExtra(Intent.EXTRA_TEXT, message);
+
+				// Create intent to show chooser
+				Intent chooser = Intent.createChooser(intent, "Choose:");
+
+				// Verify the intent will resolve to at least one activity
+				if (intent.resolveActivity(getPackageManager()) != null) {
+					startActivity(chooser);
+				}
+
+			}
+		});
+
+	}
+
 	protected void showFeedback() {
 		// Inflate the feedback contact contents, using the same view of FAQ
 		View faqView = getLayoutInflater().inflate(R.layout.faq_dialog, null,
@@ -186,7 +252,6 @@ public class PrefsActivity extends PreferenceActivity {
 		feedback.setWebViewClient(new WebViewClient() {
 			@Override
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				Log.d(Application.APPTAG, "url: " + url);
 				if (url.startsWith("mailto:")) {
 					MailTo mt = MailTo.parse(url);
 					Intent intent = new Intent();
@@ -197,10 +262,8 @@ public class PrefsActivity extends PreferenceActivity {
 					intent.putExtra(Intent.EXTRA_SUBJECT,
 							"Community Animator feedback");
 
-					String title = getResources().getString(
-							R.string.action_websearch);
 					// Create intent to show chooser
-					Intent chooser = Intent.createChooser(intent, title);
+					Intent chooser = Intent.createChooser(intent, "Choose:");
 
 					// Verify the intent will resolve to at least one activity
 					if (intent.resolveActivity(getPackageManager()) != null) {

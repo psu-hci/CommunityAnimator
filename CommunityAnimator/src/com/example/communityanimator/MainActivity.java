@@ -431,7 +431,7 @@ public class MainActivity extends Activity implements LocationListener,
 						if (name.matches("")) {
 							Toast.makeText(MainActivity.this,
 									"Please, enter your friend´s name.",
-									Toast.LENGTH_SHORT).show();
+									Toast.LENGTH_LONG).show();
 							return;
 						}
 						ParseQuery<ParseUser> locateQuery = ParseUser
