@@ -26,6 +26,10 @@ public class TwitterLogin extends Activity {
 	}
 
 	private void onLoginButtonClicked() {
+		Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
+				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
+		ParseTwitterUtils.initialize("TZy9crz2RePmmlycnaR2uCcQa",
+				"lOfCu7zqDr9KttBs31R0ScRdItB5T2XGLSjAQzTBfzvZGHCbJI");
 		ParseTwitterUtils.logIn(TwitterLogin.this, new LogInCallback() {
 			@Override
 			public void done(ParseUser user, ParseException arg1) {

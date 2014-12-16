@@ -135,9 +135,9 @@
     <string name="about1">The Community Animation mobile application has been created to increase the num-ber of civic relationships in the local community.</string>
     <string name="about2">The application asks users to sign in, then create an acco-unt to select from a list of civic interests. Once an acco-unt is created, users geolo-cation on their smartphone allows Community Animation to connect and coordinate with users in 
 close proximity with matching civic interests.</string>
-    <string name="term1">Researchers at PSU and PARC want to understand how hOurworld members will use this mobile app and how mobile technology would influences time banking activities and social interaction and engagement. By using this application, you agree to share 
-    data from your experiences and uses of it. </string>
-    <string name="term2">However you can opt out of this study whenever you want. Your information will be kept confidential in accordance with to HIPAA standards, and that any data that is publicized will be stripped of any personally identifying 
-    information. For further information on this study, please contact Dr. Jack Carroll (jmcarroll@psu.edu) or Dr. Victoria Bellotti (Victoria.Bellotti@parc.com)</string>
+    <string name="term1">Researchers at PSU have collaborated with the New Leaf Initiative to learn more about how community members will use this mobile app and how mobile technology would influences social interaction and engagement. By using this application, you 
+        agree to share data from your experiences and uses of the app although you can opt out of this study at any time. Your information will be kept confidential in accordance with to HIPAA standards.</string>
+    <string name="term2">Any data that is used in publications be aggregated with other users information and will not include any information that will personally identify you as a user. For further information on this study, please contact Dr. Jess Kropczynski 
+        <i>(jessk@psu.edu)</i> or Dr. Jack Carroll <i>(jmcarroll@psu.edu)</i>.</string>
 
 </resources>
