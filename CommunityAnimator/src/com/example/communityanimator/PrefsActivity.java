@@ -23,10 +23,12 @@ import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.preference.SwitchPreference;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.example.communityanimator.util.Application;
 import com.parse.ParseUser;
 
 public class PrefsActivity extends PreferenceActivity {
@@ -184,9 +186,11 @@ public class PrefsActivity extends PreferenceActivity {
 		feedback.setWebViewClient(new WebViewClient() {
 			@Override
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
+				Log.d(Application.APPTAG, "url: " + url);
 				if (url.startsWith("mailto:")) {
 					MailTo mt = MailTo.parse(url);
 					Intent intent = new Intent();
+					intent.setType("text / plain");
 					intent.setAction(Intent.ACTION_SEND);
 					intent.putExtra(Intent.EXTRA_EMAIL,
 							new String[] { mt.getTo() });
@@ -200,7 +204,7 @@ public class PrefsActivity extends PreferenceActivity {
 
 					// Verify the intent will resolve to at least one activity
 					if (intent.resolveActivity(getPackageManager()) != null) {
-						startActivity(chooser); // TODO: verify chooser
+						startActivity(chooser);
 					}
 					return true;
 				} else {
