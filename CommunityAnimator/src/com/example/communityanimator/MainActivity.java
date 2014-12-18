@@ -66,6 +66,7 @@ import com.parse.ParseObject;
 import com.parse.ParsePush;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 public class MainActivity extends Activity implements LocationListener,
 		GooglePlayServicesClient.ConnectionCallbacks,
@@ -690,6 +691,24 @@ public class MainActivity extends Activity implements LocationListener,
 
 	}
 
+	private void updateChatStatus() {
+		Log.d(Application.APPTAG, "updateChatStatus!");
+		// Update receiver status
+		mUser.put("chatting", true);
+		mUser.saveInBackground(new SaveCallback() {
+
+			@Override
+			public void done(ParseException e) {
+
+				if (e != null) {
+
+					Log.d(Application.APPTAG,
+							"An error occurred while querying.", e);
+				}
+			}
+		});
+	}
+
 	private void loadUserMenu() {
 		// Check view chosen by user
 		menuView = (RelativeLayout) findViewById(R.id.menuView);
@@ -743,6 +762,8 @@ public class MainActivity extends Activity implements LocationListener,
 		default:
 			break;
 		}
+
+		// check if user is chatting
 	}
 
 	private void initializeList() {
@@ -841,7 +862,8 @@ public class MainActivity extends Activity implements LocationListener,
 				if (e == null) {
 					boolean chat = user.getBoolean("chatting");
 					if (chat) {
-						callMessaging(mUser.getObjectId(), user.getObjectId());
+						callMessaging(mUser.getUsername(), user.getUsername(),
+								user.getObjectId());
 					} else {
 						pushNotification(user.getUsername());
 					}
@@ -853,17 +875,20 @@ public class MainActivity extends Activity implements LocationListener,
 		});
 	}
 
-	private void callMessaging(String currentUserId, final String recipientId) {
+	private void callMessaging(String currentUserName, String recipientName,
+			final String recipientId) {
 
-		ParseQuery<ParseObject> query = ParseQuery.getQuery("ParseMessage");
-		query.whereEqualTo("senderId", currentUserId);
-		query.whereEqualTo("recipientId", recipientId);
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("Friends");
+		query.whereEqualTo("sendername", currentUserName);
+		query.whereEqualTo("recipientname", recipientName);
 		query.getFirstInBackground(new GetCallback<ParseObject>() {
 
 			@Override
 			public void done(ParseObject object, ParseException e) {
 
 				if (e == null) {
+
+					updateChatStatus();
 					Intent intent = new Intent(getApplicationContext(),
 							MessagingActivity.class);
 					intent.putExtra("RECIPIENT_ID", recipientId);
@@ -911,6 +936,7 @@ public class MainActivity extends Activity implements LocationListener,
 							Toast.makeText(getApplicationContext(),
 									"You sent a task invitation successfuly!",
 									Toast.LENGTH_LONG).show();
+
 						} catch (JSONException ex) {
 							ex.printStackTrace();
 						}

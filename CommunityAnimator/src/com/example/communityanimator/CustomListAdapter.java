@@ -16,7 +16,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.communityanimator.database.User;
-import com.parse.FindCallback;
+import com.example.communityanimator.util.Application;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -29,6 +30,7 @@ public class CustomListAdapter extends BaseAdapter {
 	Context mContext;
 	ParseUser currentUser;
 	boolean friend = false;
+	private List<ParseObject> mUserList;
 
 	public CustomListAdapter(Context context, List<User> objects) {
 		this.mContext = context;
@@ -87,13 +89,28 @@ public class CustomListAdapter extends BaseAdapter {
 		}
 
 		boolean chatting = user.get(position).getChatting();
+		final int location = position;
 		Log.d("Adapter", "chatting: " + chatting);
+		// if (chatting) {
+		//
+		// findChatSenderFriends(location);
+		// findChatReceiverFriends(location);
+		//
+		// if (friend) {
+		// Log.d(Application.APPTAG, "findChat icon");
+		// holder.add.setImageResource(R.drawable.ic_chat);
+		// } else {
+		// Log.d(Application.APPTAG, "not findChat icon");
+		// holder.add.setImageResource(R.drawable.ic_plus);
+		// }
+		//
+		// } else {
+		// Log.d(Application.APPTAG, "not findChat icon 2");
+		// holder.add.setImageResource(R.drawable.ic_plus);
+		// }
+
 		if (chatting) {
-			if (findChatFriends(position)) {
-				holder.add.setImageResource(R.drawable.ic_chat);
-			} else {
-				holder.add.setImageResource(R.drawable.ic_plus);
-			}
+			holder.add.setImageResource(R.drawable.ic_chat);
 		} else {
 			holder.add.setImageResource(R.drawable.ic_plus);
 		}
@@ -112,23 +129,43 @@ public class CustomListAdapter extends BaseAdapter {
 		return view;
 	}
 
-	private boolean findChatFriends(int location) {
-
-		ParseQuery<ParseObject> query = ParseQuery.getQuery("ParseMessage");
-		query.whereEqualTo("senderId", currentUser.getObjectId());
-		query.whereEqualTo("recipientId", user.get(location).getObjectId());
-		query.findInBackground(new FindCallback<ParseObject>() {
+	private void findChatSenderFriends(final int location) {
+		Log.d(Application.APPTAG, "findChatSenderFriends");
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("Friends");
+		query.whereEqualTo("sendername", currentUser.getUsername());
+		query.whereEqualTo("recipientname", user.get(location).getUsername());
+		query.getFirstInBackground(new GetCallback<ParseObject>() {
 
 			@Override
-			public void done(List<ParseObject> obj, ParseException e) {
-
-				if (obj != null) {
-					friend = true;
-				} else
-					friend = false;
+			public void done(ParseObject obj, ParseException e) {
+				if (e == null) {
+					if (obj != null) {
+						Log.d(Application.APPTAG, "friend true sender!");
+						friend = true;
+					}
+				}
 			}
 		});
-		return friend;
+	}
+
+	private void findChatReceiverFriends(final int location) {
+		Log.d(Application.APPTAG, "findChatReceiverFriends");
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("Friends");
+		query.whereEqualTo("recipientname", currentUser.getUsername());
+		query.whereEqualTo("sendername", user.get(location).getUsername());
+		query.getFirstInBackground(new GetCallback<ParseObject>() {
+
+			@Override
+			public void done(ParseObject obj, ParseException e) {
+
+				if (e == null) {
+					if (obj != null) {
+						Log.d(Application.APPTAG, "friend true receiver!");
+						friend = true;
+					}
+				}
+			}
+		});
 	}
 
 	private Bitmap findDensity(Bitmap bmp) {

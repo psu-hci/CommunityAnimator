@@ -24,13 +24,9 @@ import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,7 +45,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 
-public class SignUp extends Activity implements OnItemSelectedListener,
+public class SignUp extends Activity implements
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 
@@ -58,14 +54,12 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 
 	ParseUser user;
 	EditText usernameEditText, passwordEditText, dateEditText,
-			occupationEditText, emailEditText;
+			occupationEditText, emailEditText, genderEditText;
 	ImageView profileImage;
 	byte[] image = null;
 	LocationClient mLocationClient;
 	Location location;
-	String genderSelected;
 	TextView task, interest;
-	Spinner genderSpinner;
 	ArrayList<String> interestList, taskList;
 
 	@Override
@@ -79,28 +73,12 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 		dateEditText = (EditText) findViewById(R.id.DOBET);
 		occupationEditText = (EditText) findViewById(R.id.OccupationET);
 		emailEditText = (EditText) findViewById(R.id.EmailET);
+		genderEditText = (EditText) findViewById(R.id.GenderET);
 		task = (TextView) findViewById(R.id.taskList);
 		interest = (TextView) findViewById(R.id.interestList);
 		profileImage = (ImageView) findViewById(R.id.ProfPic);
 		interestList = new ArrayList<String>();
 		taskList = new ArrayList<String>();
-
-		// Gender Spinner
-		genderSpinner = (Spinner) findViewById(R.id.gender);
-		String[] op = { "Male", "Female", "Select your gender" };
-		final int listsize = op.length - 1;
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_item, op) {
-			@Override
-			public int getCount() {
-				return (listsize); // Truncate the list
-			}
-		};
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		genderSpinner.setAdapter(adapter);
-
-		genderSpinner.setSelection(listsize);
-		genderSpinner.setOnItemSelectedListener(this);
 
 		Intent i = getIntent();
 		if (i.hasExtra("MainView") || i.hasExtra("FacebookUser")
@@ -166,13 +144,6 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 	}
 
 	@Override
-	public void onItemSelected(AdapterView<?> parent, View view, int position,
-			long id) {
-		genderSpinner.setSelection(position);
-		genderSelected = (String) genderSpinner.getSelectedItem();
-	}
-
-	@Override
 	protected void onStart() {
 		super.onStart();
 		mLocationClient.connect();
@@ -211,7 +182,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 		}
 		String gender = preferences.getString("Gender", "");
 		if (!gender.equalsIgnoreCase("")) {
-			genderSpinner.setSelection(gender.indexOf(gender));
+			genderEditText.setText(gender);
 		}
 
 		String interest = preferences.getString("Interest", "");
@@ -241,7 +212,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 		String strDate = dateEditText.getText().toString();
 		String strOccupation = occupationEditText.getText().toString();
 		String strEmail = emailEditText.getText().toString();
-		String strGender = (String) genderSpinner.getSelectedItem();
+		String strGender = genderEditText.getText().toString();
 
 		if (interestList != null) {
 			String strInterest = interestList.toString();
@@ -288,6 +259,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 				// Compress image to lower quality scale 1 - 100
 				bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
 				image = stream.toByteArray();
+				Log.d(Application.APPTAG, "image: " + image.length);
 			}
 		}
 	}
@@ -311,6 +283,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 		dateEditText.setError(null);
 		occupationEditText.setError(null);
 		emailEditText.setError(null);
+		genderEditText.setError(null);
 	}
 
 	private void attempSignup() {
@@ -322,6 +295,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 		String date = dateEditText.getText().toString().trim();
 		String occupation = occupationEditText.getText().toString().trim();
 		String email = emailEditText.getText().toString().trim();
+		String gender = genderEditText.getText().toString().trim();
 
 		boolean cancel = false;
 		View focusView = null;
@@ -373,12 +347,19 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 			focusView = occupationEditText;
 			cancel = true;
 		}
+		if (TextUtils.isEmpty(gender)) {
+			genderEditText
+					.setError(Html
+							.fromHtml("<font color='red'>This field is required.</font>"));
+			focusView = genderEditText;
+			cancel = true;
+		}
 		if (cancel) {
 			focusView.requestFocus();
 		} else {
 			if (verifyFields()) {
 				signUp(username.toLowerCase(Locale.getDefault()), password,
-						email, date, occupation);
+						email, date, occupation, gender);
 			}
 		}
 	}
@@ -410,7 +391,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 	}
 
 	private void signUp(String username, String password, String email,
-			String date, String occupation) {
+			String date, String occupation, String gender) {
 		// Set up a progress dialog
 		final ProgressDialog dialog = new ProgressDialog(SignUp.this);
 		dialog.setMessage(getString(R.string.progress_signUp));
@@ -421,7 +402,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 			currentUser.setPassword(password);
 			currentUser.put("dateBirth", date);
 			currentUser.put("occupation", occupation);
-			currentUser.put("gender", genderSelected);
+			currentUser.put("gender", gender);
 			currentUser.put("email", email);
 			// default values
 			currentUser.put("reminder", true);
@@ -443,7 +424,8 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 			currentUser.put("taskList", taskList);
 
 			// Verify if the user uploaded an image
-			if (image == null) {
+			Log.d(Application.APPTAG, "current User image: " + image.length);
+			if (image == null || image.length < 0) {
 				currentUser.put("image", false);
 			} else {
 				Log.d(Application.APPTAG, "entrou image not null!!");
@@ -484,7 +466,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 			user.setPassword(password);
 			user.put("dateBirth", date);
 			user.put("occupation", occupation);
-			user.put("gender", genderSelected);
+			user.put("gender", gender);
 			user.put("email", email);
 			// default values
 			user.put("reminder", true);
@@ -506,7 +488,8 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 			user.put("taskList", taskList);
 
 			// Verify if the user uploaded an image
-			if (image == null) {
+			Log.d(Application.APPTAG, "new user image: " + image.length);
+			if (image == null || image.length < 0) {
 				user.put("image", false);
 			} else {
 				user.put("image", true);
@@ -560,11 +543,7 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 		dateEditText.setText(date);
 		occupationEditText.setText(occupation);
 		emailEditText.setText(email);
-		Log.d(Application.APPTAG, "gender: " + gender);
-		if (gender == null) {
-			genderSpinner.setSelection(2);
-		} else
-			genderSpinner.setSelection(gender.indexOf(gender));
+		genderEditText.setText(gender);
 
 	}
 
@@ -613,10 +592,10 @@ public class SignUp extends Activity implements OnItemSelectedListener,
 	}
 
 	@Override
-	public void onNothingSelected(AdapterView<?> parent) {
-
-		Toast.makeText(SignUp.this, "Please, select your gender.",
-				Toast.LENGTH_LONG).show();
+	public void onBackPressed() {
+		Intent i = new Intent(getApplicationContext(), MainActivity.class);
+		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(i);
 	}
 
 }

@@ -86,20 +86,22 @@
         android:hint="@string/Occupation"
         android:singleLine="true" />
 
-    <Spinner
-        android:id="@+id/gender"
-        style="@style/SpinnerAppThemeSpinner"
+    <EditText
+        android:id="@+id/GenderET"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/OccupationET" >
-    </Spinner>
+        android:layout_below="@id/OccupationET"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/edittext_round_corners"
+        android:hint="@string/gender"
+        android:singleLine="true" />
 
     <TextView
         android:id="@+id/interestList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/gender"
-        android:layout_marginTop="15dp"
+        android:layout_below="@id/GenderET"
+        android:layout_marginTop="12dp"
         android:background="@drawable/selector_profile_text"
         android:gravity="center_vertical"
         android:text="@string/interestAreas"
