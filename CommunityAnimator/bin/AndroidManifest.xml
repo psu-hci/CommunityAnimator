@@ -18,6 +18,17 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
+    <permission
+        android:name="com.example.communityanimator.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.example.communityanimator.permission.C2D_MESSAGE" />
 
     <!--
      The following two permissions are not required to use
@@ -47,7 +58,8 @@
         </activity>
         <activity
             android:name=".Login"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:noHistory="true" >
         </activity>
         <activity
             android:name=".SignUp"
@@ -55,6 +67,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
+            android:noHistory="true"
             android:screenOrientation="portrait" >
         </activity>
         <activity
@@ -64,6 +77,30 @@
         </activity>
         <activity
             android:name=".FacebookLogin"
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".TwitterLogin"
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".PrefsActivity"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".NotificationActivity"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".scenarios.InterestExpandableListActivity"
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".scenarios.TaskExpandableListActivity"
+            android:noHistory="true"
             android:screenOrientation="portrait" >
         </activity>
         <activity
@@ -77,6 +114,48 @@
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/maps_app_key" />
+        <!-- Messaging -->
+        <service android:name=".message.MessageService" >
+        </service>
+
+        <activity
+            android:name=".message.MessagingActivity"
+            android:screenOrientation="portrait" >
+        </activity>
+
+        <!-- Notifications -->
+        <service android:name="com.parse.PushService" />
+
+        <receiver android:name="com.parse.ParseBroadcastReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.RECEIVE_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.parse.GcmBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
+                <category android:name="com.example.communityanimator" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.parse.ParsePushBroadcastReceiver"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.parse.push.intent.RECEIVE" />
+                <action android:name="com.parse.push.intent.DELETE" />
+                <action android:name="com.parse.push.intent.OPEN" />
+            </intent-filter>
+        </receiver>
+
+        <meta-data
+            android:name="com.parse.push.notification_icon"
+            android:resource="@drawable/ic_launcher" />
     </application>
 
 </manifest>
