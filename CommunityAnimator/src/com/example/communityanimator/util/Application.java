@@ -3,9 +3,7 @@ package com.example.communityanimator.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.example.communityanimator.NotificationActivity;
 import com.parse.Parse;
-import com.parse.PushService;
 
 public class Application extends android.app.Application {
 
@@ -38,7 +36,7 @@ public class Application extends android.app.Application {
 				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
 
 		// Specify an Activity to handle all pushes by default.
-		PushService.setDefaultPushCallback(this, NotificationActivity.class);
+		// PushService.setDefaultPushCallback(this, NotificationActivity.class);
 
 		preferences = getSharedPreferences("com.example.communityanimator",
 				Context.MODE_PRIVATE);
