@@ -19,7 +19,7 @@ public class TwitterLogin extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// Initializing Parse SDK
-		onCreateParse();
+		// onCreateParse();
 		// Calling ParseAnalytics to see Analytics of our app
 		// ParseAnalytics.trackAppOpened(getIntent());
 		onLoginButtonClicked();
@@ -28,6 +28,7 @@ public class TwitterLogin extends Activity {
 	private void onLoginButtonClicked() {
 		Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
 				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
+
 		ParseTwitterUtils.initialize("TZy9crz2RePmmlycnaR2uCcQa",
 				"lOfCu7zqDr9KttBs31R0ScRdItB5T2XGLSjAQzTBfzvZGHCbJI");
 		ParseTwitterUtils.logIn(TwitterLogin.this, new LogInCallback() {
@@ -72,8 +73,8 @@ public class TwitterLogin extends Activity {
 	}
 
 	public void onCreateParse() {
-		Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
-				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
+		// Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
+		// "NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
 		ParseTwitterUtils.initialize("TZy9crz2RePmmlycnaR2uCcQa",
 				"lOfCu7zqDr9KttBs31R0ScRdItB5T2XGLSjAQzTBfzvZGHCbJI");
 	}

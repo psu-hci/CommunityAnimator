@@ -23,7 +23,6 @@ import com.example.communityanimator.message.MessageService;
 import com.example.communityanimator.util.Application;
 import com.parse.LogInCallback;
 import com.parse.Parse;
-import com.parse.ParseAnalytics;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseUser;
@@ -52,9 +51,9 @@ public class Login extends Activity {
 		setContentView(R.layout.activity_login);
 
 		// Initializing Parse SDK
-		onCreateParse();
+		// onCreateParse();
 		// Calling ParseAnalytics to see Analytics of our app
-		ParseAnalytics.trackAppOpened(getIntent());
+		// ParseAnalytics.trackAppOpened(getIntent());
 
 		// creating connection detector class instance
 		cd = new ConnectionDetector(getApplicationContext());

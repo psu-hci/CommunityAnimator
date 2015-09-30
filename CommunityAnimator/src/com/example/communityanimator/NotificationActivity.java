@@ -27,7 +27,6 @@ import com.example.communityanimator.message.MessagingActivity;
 import com.example.communityanimator.util.Application;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
-import com.parse.ParseAnalytics;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseObject;
@@ -49,7 +48,7 @@ public class NotificationActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		Log.d(Application.APPTAG, "NotificationActivity");
 
-		ParseAnalytics.trackAppOpened(getIntent());
+		// ParseAnalytics.trackAppOpened(getIntent());
 		Intent intent = getIntent();
 		JSONObject json;
 		try {
