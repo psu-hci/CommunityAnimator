@@ -94,7 +94,7 @@ public class TaskExpandableListActivity extends ExpandableListActivity {
 	@SuppressWarnings("unchecked")
 	private void viewProfile() {
 		ParseUser user = ParseUser.getCurrentUser();
-		if (user != null) {
+		if (user != null && user.get("taskList") != null) {
 			for (int i = 0; i < parents.size(); i++) {
 				TaskParent<TaskChild> parent = (TaskParent<TaskChild>) parents
 						.get(i);

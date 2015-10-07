@@ -1,43 +1,24 @@
 package com.example.communityanimator;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.communityanimator.util.Application;
 import com.facebook.AccessToken;
-import com.facebook.GraphRequest;
-import com.facebook.GraphRequestAsyncTask;
-import com.facebook.GraphResponse;
-import com.parse.LogInCallback;
-import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseUser;
-import com.parse.SaveCallback;
 
 public class FacebookLogin extends Activity {
 
 	ParseUser user;
 	String name = null, email = null;
 
-	public static final List<String> mPermissions = new ArrayList<String>() {
-		{
-			add("public_profile");
-			add("email");
-		}
-	};
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		// GET FACEBOOK KEY HASH
 		// try {
 		// PackageInfo info = getPackageManager().getPackageInfo(
@@ -57,104 +38,153 @@ public class FacebookLogin extends Activity {
 
 		// Initializing Parse SDK
 		onCreateParse();
-
 		ParseUser currentUser = ParseUser.getCurrentUser();
+
 		if ((currentUser != null) && ParseFacebookUtils.isLinked(currentUser)) {
 			// Go to the user info activity
+			Log.d(Application.APPTAG, "calll next activity");
 			finishActivity();
 		} else {
+			Log.d(Application.APPTAG, "log in");
 			onLoginButtonClicked();
 		}
 
 	}
 
+	public boolean isLoggedIn() {
+		AccessToken accessToken = AccessToken.getCurrentAccessToken();
+		return accessToken != null;
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		ParseFacebookUtils.onActivityResult(requestCode, resultCode, data);
+		// ParseFacebookUtils.onActivityResult(requestCode, resultCode, data);
 	}
 
 	private void onLoginButtonClicked() {
 		Log.d(Application.APPTAG, "onLoginButtonClicked");
 
-		ParseFacebookUtils.logInWithReadPermissionsInBackground(
-				FacebookLogin.this, mPermissions, new LogInCallback() {
-					@Override
-					public void done(ParseUser user, ParseException err) {
-						Log.d(Application.APPTAG, "user: " + user.getUsername());
+		// Toast.makeText(FacebookLogin.this,"Wait...",Toast.LENGTH_SHORT).show();
+		// GraphRequest request = GraphRequest.newMeRequest(
+		// AccessToken.getCurrentAccessToken(),
+		// new GraphRequest.GraphJSONObjectCallback() {
+		// @Override
+		// public void onCompleted(JSONObject object,
+		// GraphResponse response) {
+		// Log.d(Application.APPTAG, "onCompleted");
+		// try {
+		// email_id = object.getString("email");
+		// gender = object.getString("gender");
+		// // Start new activity or use this
+		// // info in your project.
+		// Intent i = new Intent(FacebookLogin.this,
+		// SignUp.class);
+		// i.putExtra("FacebookUser", "FacebookUser");
+		// i.putExtra("type", "facebook");
+		// i.putExtra("facebook_id",
+		// facebook_id);
+		// i.putExtra("f_name", f_name);
+		// i.putExtra("m_name", m_name);
+		// i.putExtra("l_name", l_name);
+		// i.putExtra("full_name",
+		// full_name);
+		// i.putExtra("profile_image",
+		// profile_image);
+		// i.putExtra("email_id", email_id);
+		// i.putExtra("gender", gender);
 
-						if (user.isNew()) {
-							Log.d(Application.APPTAG,
-									"User signed up and logged in through Facebook!");
-							getUserDetailsFromFB(user);
-							// saveNewUser();
-						} else {
-							Log.d(Application.APPTAG,
-									"User logged in through Facebook!");
-							finishActivity();
-						}
-					}
-				});
+		// startActivity(i);
+		// finish();
+		// } catch (JSONException e) {
+		// // TODO Auto-generated catch block
+		// // e.printStackTrace();
+		// }
+		//
+		// }
+		//
+		// });
+		//
+		// request.executeAsync();
+
+		// ParseFacebookUtils.logInWithReadPermissionsInBackground(
+		// FacebookLogin.this, mPermissions, new LogInCallback() {
+		// @Override
+		// public void done(ParseUser user, ParseException err) {
+		// Log.d(Application.APPTAG, "user: " + user.getUsername());
+		//
+		// if (user.isNew()) {
+		// Log.d(Application.APPTAG,
+		// "User signed up and logged in through Facebook!");
+		// getUserDetailsFromFB(user);
+		// // saveNewUser();
+		// } else {
+		// Log.d(Application.APPTAG,
+		// "User logged in through Facebook!");
+		// finishActivity();
+		// }
+		// }
+		// });
 	}
 
-	private void getUserDetailsFromFB(final ParseUser user) {
-		GraphRequestAsyncTask request = GraphRequest.newMeRequest(
-				AccessToken.getCurrentAccessToken(),
-				new GraphRequest.GraphJSONObjectCallback() {
-					@Override
-					public void onCompleted(JSONObject user,
-							GraphResponse response) {
-						/* handle the result */
-						try {
-							email = response.getJSONObject().getString("email");
-							name = response.getJSONObject().getString("name");
+	// private void getUserDetailsFromFB(final ParseUser user) {
+	// GraphRequestAsyncTask request = GraphRequest.newMeRequest(
+	// AccessToken.getCurrentAccessToken(),
+	// new GraphRequest.GraphJSONObjectCallback() {
+	// @Override
+	// public void onCompleted(JSONObject user,
+	// GraphResponse response) {
+	// /* handle the result */
+	// try {
+	// email = response.getJSONObject().getString("email");
+	// name = response.getJSONObject().getString("name");
+	//
+	// saveNewUser();
+	// } catch (JSONException e) {
+	// e.printStackTrace();
+	// }
+	// }
+	// }).executeAsync();
+	// }
 
-							saveNewUser();
-						} catch (JSONException e) {
-							e.printStackTrace();
-						}
-					}
-				}).executeAsync();
-	}
-
-	private void saveNewUser() {
-
-		ParseUser currentUser = ParseUser.getCurrentUser();
-		if (currentUser != null) {
-			currentUser.put("username", name);
-			currentUser.put("email", email);
-			currentUser.saveInBackground(new SaveCallback() {
-
-				@Override
-				public void done(ParseException e) {
-					if (e != null) {
-						// Show the error message
-						Toast.makeText(FacebookLogin.this, e.getMessage(),
-								Toast.LENGTH_LONG).show();
-					} else {
-						finishActivity();
-					}
-				}
-			});
-		} else {
-			user = new ParseUser();
-			user.setUsername(name);
-			user.put("email", email);
-			user.saveInBackground(new SaveCallback() {
-
-				@Override
-				public void done(ParseException e) {
-					if (e != null) {
-						// Show the error message
-						Toast.makeText(FacebookLogin.this, e.getMessage(),
-								Toast.LENGTH_LONG).show();
-					} else {
-						finishActivity();
-					}
-				}
-			});
-		}
-	}
+	// private void saveNewUser() {
+	//
+	// ParseUser currentUser = ParseUser.getCurrentUser();
+	// if (currentUser != null) {
+	// currentUser.put("username", name);
+	// currentUser.put("email", email);
+	// currentUser.saveInBackground(new SaveCallback() {
+	//
+	// @Override
+	// public void done(ParseException e) {
+	// if (e != null) {
+	// // Show the error message
+	// Toast.makeText(FacebookLogin.this, e.getMessage(),
+	// Toast.LENGTH_LONG).show();
+	// } else {
+	// finishActivity();
+	// }
+	// }
+	// });
+	// } else {
+	// user = new ParseUser();
+	// user.setUsername(name);
+	// user.put("email", email);
+	// user.saveInBackground(new SaveCallback() {
+	//
+	// @Override
+	// public void done(ParseException e) {
+	// if (e != null) {
+	// // Show the error message
+	// Toast.makeText(FacebookLogin.this, e.getMessage(),
+	// Toast.LENGTH_LONG).show();
+	// } else {
+	// finishActivity();
+	// }
+	// }
+	// });
+	// }
+	// }
 
 	private void finishActivity() {
 		// Start an intent for the dispatch activity

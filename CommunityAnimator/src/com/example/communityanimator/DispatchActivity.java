@@ -66,12 +66,12 @@ public class DispatchActivity extends Activity {
 				if (reminder.equals(true)) {
 					startActivity(new Intent(this, MainActivity.class));
 				} else {
-					startActivity(new Intent(this, Login.class));
+					startActivity(new Intent(this, LoginActivity.class));
 				}
 
 			} else {
 				// Start and intent for the logged out activity
-				startActivity(new Intent(this, Login.class));
+				startActivity(new Intent(this, LoginActivity.class));
 			}
 		} else {
 			// Internet connection is not present

@@ -132,50 +132,50 @@
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="@android:color/darker_gray" />
 
-        <RelativeLayout
-            android:id="@+id/facebookContent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-
-            <ImageView
-                android:id="@+id/facebookIco"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/facebook"
-                android:src="@drawable/facebook_ico" />
-
-            <Button
-                android:id="@+id/btn_facebook"
-                style="@style/ButtonAppThemeDarkBlue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/facebookIco"
-                android:layout_toRightOf="@id/facebookIco"
-                android:text="@string/facebook"
-                android:textAppearance="?android:attr/textAppearance" />
-        </RelativeLayout>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/com_facebook_button_background"
+            android:drawableLeft="@drawable/com_facebook_button_icon"
+            android:drawablePadding="@dimen/com_facebook_share_button_compound_drawable_padding"
+            android:onClick="onLoginClick"
+            android:paddingBottom="@dimen/com_facebook_share_button_padding_bottom"
+            android:paddingLeft="@dimen/com_facebook_share_button_padding_left"
+            android:paddingRight="@dimen/com_facebook_share_button_padding_right"
+            android:paddingTop="@dimen/com_facebook_share_button_padding_top"
+            android:text="@string/facebook"
+            android:textColor="@color/com_facebook_share_button_text_color"
+            android:textSize="@dimen/com_facebook_share_button_text_size" />
 
         <RelativeLayout
             android:id="@+id/twitterContent"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content" >
-
-            <ImageView
-                android:id="@+id/twitterIco"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/twitter"
-                android:src="@drawable/twitter_ico" />
 
             <Button
                 android:id="@+id/btn_twitter"
                 style="@style/ButtonAppThemeLightBlue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/twitterIco"
-                android:layout_toRightOf="@id/twitterIco"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginLeft="-7dp"
+                android:layout_marginRight="-7dp"
                 android:text="@string/twitter"
-                android:textAppearance="?android:attr/textAppearance" />
+                android:textColor="@color/com_facebook_share_button_text_color"
+              android:textSize="@dimen/com_facebook_share_button_text_size" />
+
+            <ImageView
+                android:id="@+id/twitterIco"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center_horizontal"
+                android:contentDescription="@string/twitter"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/twitter_test" />
         </RelativeLayout>
 
         <RelativeLayout

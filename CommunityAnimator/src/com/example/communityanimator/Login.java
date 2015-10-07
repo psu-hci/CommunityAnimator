@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import com.example.communityanimator.message.MessageService;
 import com.example.communityanimator.util.Application;
+import com.facebook.FacebookSdk;
 import com.parse.LogInCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
@@ -31,7 +32,6 @@ public class Login extends Activity {
 
 	Button btn_LoginIn = null;
 	Button btn_SignUp = null;
-	Button btn_facebook = null;
 	Button btn_twitter = null;
 	TextView btn_ForgetPass = null;
 	CheckBox reminder = null;
@@ -48,6 +48,7 @@ public class Login extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		FacebookSdk.sdkInitialize(getApplicationContext());
 		setContentView(R.layout.activity_login);
 
 		// Initializing Parse SDK
@@ -63,7 +64,6 @@ public class Login extends Activity {
 
 		btn_LoginIn = (Button) findViewById(R.id.btn_login);
 		btn_SignUp = (Button) findViewById(R.id.btn_signup);
-		btn_facebook = (Button) findViewById(R.id.btn_facebook);
 		btn_twitter = (Button) findViewById(R.id.btn_twitter);
 		btn_ForgetPass = (TextView) findViewById(R.id.forgot);
 		mUserNameEditText = (EditText) findViewById(R.id.username);
@@ -108,16 +108,6 @@ public class Login extends Activity {
 
 				Intent in = new Intent(Login.this, ForgetParsePassword.class);
 				startActivity(in);
-			}
-		});
-
-		btn_facebook.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				Intent in = new Intent(Login.this, FacebookLogin.class);
-				startActivity(in);
-
 			}
 		});
 

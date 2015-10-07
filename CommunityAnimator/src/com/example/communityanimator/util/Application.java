@@ -3,7 +3,9 @@ package com.example.communityanimator.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.facebook.FacebookSdk;
 import com.parse.Parse;
+import com.parse.ParseFacebookUtils;
 
 public class Application extends android.app.Application {
 
@@ -32,8 +34,12 @@ public class Application extends android.app.Application {
 	public void onCreate() {
 		super.onCreate();
 
+		FacebookSdk.sdkInitialize(getApplicationContext());
+
 		Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
 				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
+
+		ParseFacebookUtils.initialize(this);
 
 		// Specify an Activity to handle all pushes by default.
 		// PushService.setDefaultPushCallback(this, NotificationActivity.class);

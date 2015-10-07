@@ -36,7 +36,9 @@ public class MessageService extends Service implements SinchClientListener {
 
 		currentUserId = ParseUser.getCurrentUser().getObjectId();
 
-		if (currentUserId != null && !isSinchClientStarted()) {
+		// TODO: verificar esse if :antes !isSinchClientStarted() dava erro se o
+		// user ja estivesse logado
+		if (currentUserId != null && isSinchClientStarted()) {
 			startSinchClient(currentUserId);
 		}
 

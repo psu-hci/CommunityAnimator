@@ -113,7 +113,7 @@ public class InterestExpandableListActivity extends ExpandableListActivity {
 	@SuppressWarnings("unchecked")
 	private void viewProfile() {
 		ParseUser user = ParseUser.getCurrentUser();
-		if (user != null) {
+		if (user != null && user.get("interestList") != null) {
 			for (int i = 0; i < parents.size(); i++) {
 				InterestParent<InterestChild> parent = (InterestParent<InterestChild>) parents
 						.get(i);
