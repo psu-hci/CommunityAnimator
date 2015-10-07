@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 
 import com.facebook.FacebookSdk;
 import com.parse.Parse;
+import com.parse.ParseCrashReporting;
 import com.parse.ParseFacebookUtils;
 
 public class Application extends android.app.Application {
@@ -36,6 +37,8 @@ public class Application extends android.app.Application {
 
 		FacebookSdk.sdkInitialize(getApplicationContext());
 
+		ParseCrashReporting.enable(this);
+
 		Parse.initialize(this, "T4lD84ZeLY7615h43jpGlVTG5cXZyXd8ceSGX29e",
 				"NksRHt7K9ldAmmfVUq843DY4mmWuUQRaQWecvcxa");
 
@@ -49,6 +52,9 @@ public class Application extends android.app.Application {
 
 		configHelper = new ConfigHelper();
 		configHelper.fetchConfigIfNeeded();
+
+		// Test ParseCrashReporting functionality
+		// throw new RuntimeException("Test Exception!");
 	}
 
 	public static float getSearchDistance() {
