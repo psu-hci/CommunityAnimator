@@ -38,7 +38,7 @@ public class MessageService extends Service implements SinchClientListener {
 
 		// TODO: verificar esse if :antes !isSinchClientStarted() dava erro se o
 		// user ja estivesse logado
-		if (currentUserId != null && isSinchClientStarted()) {
+		if (currentUserId != null && !isSinchClientStarted()) {
 			startSinchClient(currentUserId);
 		}
 

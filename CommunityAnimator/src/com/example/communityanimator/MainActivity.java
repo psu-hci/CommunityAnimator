@@ -628,6 +628,7 @@ public class MainActivity extends Activity implements LocationListener,
 
 	private List<ParseUser> userQuery() {
 		Log.d(Application.APPTAG, "userQuery");
+
 		Location myLoc = (currentLocation == null) ? lastLocation
 				: currentLocation;
 
@@ -643,6 +644,7 @@ public class MainActivity extends Activity implements LocationListener,
 		}
 		final ParseGeoPoint myPoint = LocationHelper
 				.geoPointFromLocation(myLoc);
+
 		// Create the User query
 		ParseQuery<ParseUser> mapQuery = ParseUser.getQuery();
 		// Set up additional query filters
